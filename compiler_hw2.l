@@ -5,7 +5,6 @@
 
 	extern YYSTYPE yylval; //YYSTYPE
 	char buf[256];
-	char comment_buf[256];
 
 	/* This macro is used to record code line */
 	#define CONCAT { strncat(buf, yytext, BUF_SIZE - strlen(buf) - 1); }
@@ -26,109 +25,101 @@ id			{letter}+({letter}|{digit})*
 %%
 
  /* Arithmetic */
-"+"     { yylval.string_val = yytext; return ADD; }
-"-" 	{ yylval.string_val = yytext; return SUB; }
-"*" 	{ yylval.string_val = yytext; return MUL; }
-"/" 	{ yylval.string_val = yytext; return DIV; }
-"%"     { yylval.string_val = yytext; return MOD; }
-"++"    { yylval.string_val = yytext; return INC; }
-"--"    { yylval.string_val = yytext; return DEC; }
+"+"     { yylval.string_val = "+"; printf("+"); return ADD; }
+"-" 	{ yylval.string_val = "-"; printf("-"); return SUB; }
+"*" 	{ yylval.string_val = "*"; printf("*"); return MUL; }
+"/" 	{ yylval.string_val = "/"; printf("/"); return DIV; }
+"%"     { yylval.string_val = "%"; printf("%"); return MOD; }
+"++"    { yylval.string_val = "++"; printf("++"); return INC; }
+"--"    { yylval.string_val = "--"; printf("--"); return DEC; }
 
  /* Relational */
-">"		{ yylval.string_val = yytext; return MT; }
-"<"		{ yylval.string_val = yytext; return LT; }
-">="	{ yylval.string_val = yytext; return MTE; }
-"<="	{ yylval.string_val = yytext; return LTE; }
-"=="	{ yylval.string_val = yytext; return EQ; }
-"!="	{ yylval.string_val = yytext; return NE; }
+">"		{ yylval.string_val = ">"; printf(">"); return MT; }
+"<"		{ yylval.string_val = "<"; printf("<"); return LT; }
+">="	{ yylval.string_val = ">="; printf(">="); return MTE; }
+"<="	{ yylval.string_val = "<="; printf("<="); return LTE; }
+"=="	{ yylval.string_val = "=="; printf("=="); return EQ; }
+"!="	{ yylval.string_val = "!="; printf("!="); return NE; }
 
  /* Assignment */
-"="		{ yylval.string_val = yytext; return ASGN; }
-"+="	{ yylval.string_val = yytext; return ADDASGN; }
-"-="	{ yylval.string_val = yytext; return SUBASGN; }
-"*="	{ yylval.string_val = yytext; return MULASGN; }
-"/="	{ yylval.string_val = yytext; return DIVASGN; }
-"%="	{ yylval.string_val = yytext; return MODASGN; }
+"="		{ yylval.string_val = "="; printf("="); return ASGN; }
+"+="	{ yylval.string_val = "+="; printf("+="); return ADDASGN; }
+"-="	{ yylval.string_val = "-="; printf("-="); return SUBASGN; }
+"*="	{ yylval.string_val = "*="; printf("*="); return MULASGN; }
+"/="	{ yylval.string_val = "/="; printf("/="); return DIVASGN; }
+"%="	{ yylval.string_val = "%="; printf("%="); return MODASGN; }
 
  /* Logical */
-"&&"	{ yylval.string_val = yytext; return AND; }
-"||"	{ yylval.string_val = yytext; return OR; }
-"!"		{ yylval.string_val = yytext; return NOT; }
+"&&"	{ yylval.string_val = "&&"; printf("&&"); return AND; }
+"||"	{ yylval.string_val = "||"; printf("||"); return OR; }
+"!"		{ yylval.string_val = "!"; printf("!"); return NOT; }
 
  /* Delimiters */
-"("		{ yylval.string_val = yytext; return LB; }
-")"		{ yylval.string_val = yytext; return RB; }
-"{"		{ yylval.string_val = yytext; return LCB; }
-"}"		{ yylval.string_val = yytext; return RCB; }
-"["		{ yylval.string_val = yytext; return LSB; }
-"]"		{ yylval.string_val = yytext; return RSB; }
-","		{ yylval.string_val = yytext; return COMMA; }
+"("		{ yylval.string_val = "("; printf("("); return LB; }
+")"		{ yylval.string_val = ")"; printf(")"); return RB; }
+"{"		{ yylval.string_val = "{"; printf("{"); return LCB; }
+"}"		{ yylval.string_val = "}"; printf("}"); return RCB; }
+"["		{ yylval.string_val = "["; printf("["); return LSB; }
+"]"		{ yylval.string_val = "]"; printf("]"); return RSB; }
+","		{ yylval.string_val = ","; printf(","); return COMMA; }
 
  /* Print Keywords */	
-"print"		{ yylval.string_val = yytext; return PRINT; }
+"print"		{ printf("print"); return PRINT; }
 
  /* Condition and Loop Keywords */
-"if"		{ yylval.string_val = yytext; return IF; }
-"else"		{ yylval.string_val = yytext; return ELSE; }
-"for"		{ yylval.string_val = yytext; return FOR; }
-"while"		{ yylval.string_val = yytext; return WHILE; }
+"if"		{ printf("if"); return IF; }
+"else"		{ printf("else"); return ELSE; }
+"for"		{ printf("for"); return FOR; }
+"while"		{ printf("while"); return WHILE; }
 
  /* Declaration Keywords */
-"void"		{ yylval.string_val = yytext; return VOID; }
-"int"		{ yylval.string_val = yytext; return INT; }
-"float"  	{ yylval.string_val = yytext; return FLOAT; }
-"string"  	{ yylval.string_val = yytext; return STRING; }
-"bool"  	{ yylval.string_val = yytext; return BOOL; }
+"void"		{ printf("void"); return VOID; }
+"int"		{ printf("int"); return INT; }
+"float"  	{ printf("float"); return FLOAT; }
+"string"  	{ printf("string"); return STRING; }
+"bool"  	{ printf("bool"); return BOOL; }
 
  /* boolean Keywords */
-"true"      { yylval.string_val = yytext; return TRUE; }
-"false"     { yylval.string_val = yytext; return FALSE; }
+"true"      { printf("true"); return TRUE; }
+"false"     { printf("false"); return FALSE; }
 
-"return"    { yylval.string_val = yytext; return RET; }
+"return"    { printf("return"); return RET; }
 
  /* String Constant */
-\"				        { BEGIN STRING_STATE; }
-<STRING_STATE>\"		{ BEGIN INITIAL; }
-<STRING_STATE>[^"]*		{ yylval.string_val = yytext; return S_CONST; }
+\"				        { BEGIN STRING_STATE; printf("%s", yytext); }
+<STRING_STATE>\"		{ BEGIN INITIAL; printf("%s", yytext); }
+<STRING_STATE>[^"]*		{ yylval.string_val = yytext; printf("%s", yytext); return S_CONST; }
 
  /* Number Constant */
-{integer}	{ yylval.i_val = atoi(yytext); return I_CONST; }
-{float}	    { yylval.f_val = atof(yytext); return F_CONST; }
+{integer}	{ yylval.i_val = atoi(yytext); printf("%s", yytext); return I_CONST; }
+{float}	    { yylval.f_val = atof(yytext); printf("%s", yytext); return F_CONST; }
 
  /* C type Comment */
-"/*"				{ BEGIN COMMENT; strcat(buf, yytext); }
-<COMMENT>[^*\n]+	{ strcat(buf, yytext); }
+"/*"				{ BEGIN COMMENT; printf("%s", yytext); return START_COMMENT; }
+<COMMENT>[^*\n]+	{ printf("%s", yytext); }
 <COMMENT>\n			{ 
-						strcat(buf, yytext); 
-						strcpy(comment_buf, buf); 
-						yylval.string_val = comment_buf; 
-					//	printf("L:%s",buf);
-						memset(buf, 0, sizeof(buf));	
-						return C_COMMENT_N; 
+						printf("%s", yytext);
+						printf("%d: ", yylineno);
 					}
-<COMMENT>"*"		{ strcat(buf, yytext); }
+<COMMENT>"*"		{ printf("%s", yytext); }
 <COMMENT>"*/"		{ 
 						BEGIN INITIAL; 
-						strcat(buf, yytext);
-						strcpy(comment_buf, buf); 
-						yylval.string_val = comment_buf; 
-						//printf("L:%s\n",buf);
-						memset(buf, 0, sizeof(buf)); 
+						printf("%s", yytext);
 						return END_COMMENT;
 					}
 
  /* C++ type Comment */
-\/\/.*	{ yylval.string_val = yytext; return CPLUS_COMMENT; }
+\/\/.*	{ printf("%s", yytext); return CPLUS_COMMENT; }
 
  /* Variable ID */
- {id}       { yylval.string_val = yytext; return ID; }
+ {id}       { yylval.string_val = yytext; printf("%s",yytext); return ID; }
 
  /* others */
 
-[;]         { yylval.string_val = yytext; return SEMICOLON; }
-[\n]        { return NEWLINE; }
-[\t]		{ yylval.string_val = yytext; return TAB;} /* Ignore */
-[ ]			{ }
+[;]         { yylval.string_val = yytext; printf(";"); return SEMICOLON; }
+[\n]        { printf("\n%d: ", yylineno); }
+[\t]		{ printf("    "); } /* Ignore */
+[ ]			{ printf(" "); }
 [^ \t\n] 	{ } /* Ignore other charactor sets */
 <<EOF>>     { }
 

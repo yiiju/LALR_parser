@@ -37,8 +37,7 @@ void dump_symbol();
 %token IF ELSE FOR WHILE
 %token ID SEMICOLON
 %token RET
-%token START_COMMENT C_COMMENT C_COMMENT_N END_COMMENT CPLUS_COMMENT
-%token NEWLINE TAB
+%token START_COMMENT END_COMMENT CPLUS_COMMENT
 
 /* Token with return, which need to sepcify type */
 %token <i_val> I_CONST
@@ -51,21 +50,6 @@ void dump_symbol();
 /*
 %type <f_val> stat
 */
-%type <string_val> INT
-%type <string_val> FLOAT
-%type <string_val> STRING
-%type <string_val> BOOL
-%type <string_val> type
-%type <string_val> ID
-%type <string_val> SEMICOLON
-%type <string_val> stat
-%type <string_val> declaration
-%type <string_val> print_func
-%type <string_val> comment_stat
-%type <string_val> c_comment_stat
-%type <string_val> END_COMMENT
-%type <string_val> RCB
-%type <string_val> while_expression
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -79,25 +63,14 @@ program
 ;
 
 stat
-    : tab declaration NEWLINE { printf("%d: %s", yylineno-1, $$); }
-    | declaration NEWLINE { printf("%d: %s", yylineno-1, $$); }
-    | tab expression NEWLINE { printf("%d: %s", yylineno-1, $$); }
-    | expression NEWLINE { printf("%d: %s", yylineno-1, $$); }
-	| tab iteration_stat NEWLINE
-	| iteration_stat NEWLINE
-    | tab print_func NEWLINE { printf("%d: %s", yylineno-1, $$); }
-    | print_func NEWLINE { printf("%d: %s", yylineno-1, $$); }
-	| tab comment_stat NEWLINE
-	| comment_stat NEWLINE
-	| NEWLINE { printf("%d:\n", yylineno-1); }
+    : declaration
+    | expression
+	| iteration_stat
+    | print_func
+	| comment_stat
 	/*
     | compound_stat
 	*/
-;
-
-tab
-	: TAB tab
-	|
 ;
 
 declaration
@@ -138,17 +111,39 @@ factor
 ;
 
 iteration_stat
-	: WHILE LB while_expression RB LCB NEWLINE mul_stat RCB { printf("%d: %s\n", yylineno, $8); }
+	: WHILE LB while_expression RB LCB mul_stat RCB 
+	| IF LB if_expression RB LCB mul_stat RCB 
+	| IF LB if_expression RB LCB mul_stat RCB ELSE else_stat
+	| IF LB if_expression RB LCB mul_stat RCB ELSE elseif_stat else_stat
 ;
 
 while_expression
-	: I_CONST { printf("%d: while(%d) {\n", yylineno, $1); }
-	| ID relational factor { printf("%d: while(%s) {\n", yylineno, $$); }
+	: I_CONST 
+	| ID relational factor 
+;
+
+if_expression
+	: I_CONST 
+	| ID relational factor 
+;
+
+elseif_expression
+	: I_CONST 
+	| ID relational factor 
 ;
 
 mul_stat
 	: stat mul_stat
-	|
+	| stat
+;
+
+elseif_stat
+	: IF LB elseif_expression RB LCB mul_stat RCB ELSE elseif_stat
+	| IF LB elseif_expression RB LCB mul_stat RCB ELSE
+;
+
+else_stat
+	: LCB mul_stat RCB 
 ;
 
 relational
@@ -166,14 +161,8 @@ print_func
 ;
 
 comment_stat
-	: CPLUS_COMMENT { printf("%d: %s\n", yylineno, $$); }
-	| c_comment_stat END_COMMENT { printf("%d: %s\n", yylineno, $2); }
-;
-
-c_comment_stat
-	: C_COMMENT_N { printf("%d: %s", yylineno-1, $$); }
-	| c_comment_stat c_comment_stat
-	|
+	: CPLUS_COMMENT 
+	| START_COMMENT END_COMMENT
 ;
 
 initializer
@@ -214,6 +203,7 @@ int main(int argc, char** argv)
 {
     yylineno = 1;
 
+	printf("1: ");
     yyparse();
 	printf("\nTotal lines: %d \n",yylineno);
 

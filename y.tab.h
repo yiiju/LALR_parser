@@ -88,17 +88,13 @@ extern int yydebug;
     SEMICOLON = 298,
     RET = 299,
     START_COMMENT = 300,
-    C_COMMENT = 301,
-    C_COMMENT_N = 302,
-    END_COMMENT = 303,
-    CPLUS_COMMENT = 304,
-    NEWLINE = 305,
-    TAB = 306,
-    I_CONST = 307,
-    F_CONST = 308,
-    S_CONST = 309,
-    TRUE = 310,
-    FALSE = 311
+    END_COMMENT = 301,
+    CPLUS_COMMENT = 302,
+    I_CONST = 303,
+    F_CONST = 304,
+    S_CONST = 305,
+    TRUE = 306,
+    FALSE = 307
   };
 #endif
 /* Tokens.  */
@@ -145,17 +141,13 @@ extern int yydebug;
 #define SEMICOLON 298
 #define RET 299
 #define START_COMMENT 300
-#define C_COMMENT 301
-#define C_COMMENT_N 302
-#define END_COMMENT 303
-#define CPLUS_COMMENT 304
-#define NEWLINE 305
-#define TAB 306
-#define I_CONST 307
-#define F_CONST 308
-#define S_CONST 309
-#define TRUE 310
-#define FALSE 311
+#define END_COMMENT 301
+#define CPLUS_COMMENT 302
+#define I_CONST 303
+#define F_CONST 304
+#define S_CONST 305
+#define TRUE 306
+#define FALSE 307
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -169,7 +161,7 @@ union YYSTYPE
     char* string_val;
 //	bool bool_val;
 
-#line 173 "y.tab.h" /* yacc.c:1909  */
+#line 165 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
