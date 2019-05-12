@@ -1,10 +1,12 @@
 /*	Definition section */
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 extern int yylineno;
 extern int yylex();
+extern void yyerror(char *s);
 extern char* yytext;   // Get current token from lex
 extern char buf[256];  // Get current code line from lex
 
@@ -68,9 +70,18 @@ stat
 	| iteration_stat
     | print_func
 	| comment_stat
-	/*
     | compound_stat
-	*/
+	| return_stat
+;
+
+return_stat
+	: RET initializer
+	| RET expression_stat
+;
+
+compound_stat
+	: type ID LB func_declaration RB LCB mul_stat RCB
+	| type ID LB RB LCB mul_stat RCB
 ;
 
 declaration
@@ -85,8 +96,23 @@ func_declaration
 	| type ID
 ;
 
+func_call
+	: func_call COMMA const
+	| const
+;
+
+const
+	: I_CONST
+	| F_CONST
+	| S_CONST
+	| ID
+;
+
 expression
 	: ID asgn expression_stat SEMICOLON
+	| ID arithmetic_postfix SEMICOLON
+	| ID LB func_call RB SEMICOLON
+	| ID LB RB SEMICOLON
 	| SEMICOLON
 ;
 
@@ -108,26 +134,17 @@ factor
 	| F_CONST
 	| ID
 	| LB expression_stat RB
+	| ID arithmetic_postfix
 ;
 
 iteration_stat
-	: WHILE LB while_expression RB LCB mul_stat RCB 
-	| IF LB if_expression RB LCB mul_stat RCB 
-	| IF LB if_expression RB LCB mul_stat RCB ELSE else_stat
-	| IF LB if_expression RB LCB mul_stat RCB ELSE elseif_stat else_stat
+	: WHILE LB iter_expression RB LCB mul_stat RCB 
+	| IF LB iter_expression RB LCB mul_stat RCB 
+	| IF LB iter_expression RB LCB mul_stat RCB ELSE else_stat
+	| IF LB iter_expression RB LCB mul_stat RCB ELSE elseif_stat else_stat
 ;
 
-while_expression
-	: I_CONST 
-	| ID relational factor 
-;
-
-if_expression
-	: I_CONST 
-	| ID relational factor 
-;
-
-elseif_expression
+iter_expression
 	: I_CONST 
 	| ID relational factor 
 ;
@@ -138,8 +155,8 @@ mul_stat
 ;
 
 elseif_stat
-	: IF LB elseif_expression RB LCB mul_stat RCB ELSE elseif_stat
-	| IF LB elseif_expression RB LCB mul_stat RCB ELSE
+	: IF LB iter_expression RB LCB mul_stat RCB ELSE elseif_stat
+	| IF LB iter_expression RB LCB mul_stat RCB ELSE
 ;
 
 else_stat
@@ -180,6 +197,11 @@ asgn
 	| MODASGN
 ;
 
+arithmetic_postfix
+	: INC
+	| DEC
+;
+
 /* actions can be taken when meet the token or rule */
 type
     : INT
@@ -187,13 +209,6 @@ type
     | BOOL
     | STRING
     | VOID
-    /*
-	: INT { $$ = $1; }
-    | FLOAT { $$ = $1; }
-    | BOOL  { $$ = $1; }
-    | STRING { $$ = $1; }
-    | VOID { $$ = $1; }
-	*/
 ;
 
 %%
