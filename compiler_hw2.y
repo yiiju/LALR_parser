@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 extern int yylineno;
 extern int yylex();
@@ -11,10 +12,23 @@ extern char* yytext;   // Get current token from lex
 extern char buf[256];  // Get current code line from lex
 
 /* Symbol table function - you can add new function if needed. */
-int lookup_symbol();
+struct symbol
+{
+	int index;
+	char name[100];
+	char kind[100];
+	char type[100];
+	int scope;
+	char attribute[100];
+};
+
+int lookup_symbol(char[]);
 void create_symbol();
-void insert_symbol();
+void insert_symbol(char[], char[], char[], char[]);
 void dump_symbol();
+
+struct symbol* global_table[30];
+int table_num;
 
 %}
 
@@ -52,6 +66,8 @@ void dump_symbol();
 /*
 %type <f_val> stat
 */
+%type <string_val> type
+%type <string_val> ID INT FLOAT BOOL STRING VOID
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -65,35 +81,58 @@ program
 ;
 
 stat
-    : declaration
+    : type ID declaration
     | expression
 	| iteration_stat
     | print_func
 	| comment_stat
-    | compound_stat
-	| return_stat
+	| RET return_stat
 ;
 
 return_stat
-	: RET initializer
-	| RET expression_stat
+	: initializer
+	| expression_stat
 ;
 
-compound_stat
-	: type ID LB func_declaration RB LCB mul_stat RCB
-	| type ID LB RB LCB mul_stat RCB
+func
+	: func_declaration RB func_end
+	| RB LCB mul_stat RCB
+;
+
+func_end
+	: SEMICOLON
+	| LCB mul_stat RCB
 ;
 
 declaration
-    : type ID ASGN initializer SEMICOLON
-    | type ID SEMICOLON
-	| type ID ASGN expression_stat SEMICOLON
-	| type ID LB func_declaration RB SEMICOLON
+    : ASGN initializer SEMICOLON 
+	/*
+	{
+		int hasSymbol = lookup_symbol($1); 
+		if(hasSymbol == 1) {
+			insert_symbol($2, "variable", $1, "\0");
+			printf("//%s//\n",$2);
+		}
+	}
+	*/
+    | SEMICOLON
+	| ASGN expression_stat SEMICOLON
+	| LB func
 ;
 
 func_declaration
 	: func_declaration COMMA type ID
 	| type ID
+	/*
+	{
+		int hasSymbol = lookup_symbol($1); 
+			printf("//%s//\n",$2);
+		if(hasSymbol == 1) {
+			printf("//%s//\n",$2);
+			insert_symbol($2, "parameter", $1, "\0");
+		}
+	}
+	*/
 ;
 
 func_call
@@ -139,9 +178,22 @@ factor
 
 iteration_stat
 	: WHILE LB iter_expression RB LCB mul_stat RCB 
-	| IF LB iter_expression RB LCB mul_stat RCB 
-	| IF LB iter_expression RB LCB mul_stat RCB ELSE else_stat
-	| IF LB iter_expression RB LCB mul_stat RCB ELSE elseif_stat else_stat
+	| IF LB iter_expression RB LCB mul_stat RCB haselse
+;
+
+haselse
+	: ELSE haselseif LCB mul_stat RCB
+	| 
+;
+
+haselseif
+	: IF LB iter_expression RB LCB mul_stat RCB moreelseif
+	| 
+;
+
+moreelseif
+	: ELSE haselseif
+	|
 ;
 
 iter_expression
@@ -154,15 +206,6 @@ mul_stat
 	| stat
 ;
 
-elseif_stat
-	: IF LB iter_expression RB LCB mul_stat RCB ELSE elseif_stat
-	| IF LB iter_expression RB LCB mul_stat RCB ELSE
-;
-
-else_stat
-	: LCB mul_stat RCB 
-;
-
 relational
 	: MT
 	| LT
@@ -173,8 +216,12 @@ relational
 ;
 
 print_func
-	: PRINT LB S_CONST RB SEMICOLON
-	| PRINT LB ID RB SEMICOLON
+	: PRINT LB print_type
+;
+
+print_type
+	: S_CONST RB SEMICOLON
+	| ID RB SEMICOLON
 ;
 
 comment_stat
@@ -218,7 +265,6 @@ int main(int argc, char** argv)
 {
     yylineno = 1;
 
-	printf("1: ");
     yyparse();
 	printf("\nTotal lines: %d \n",yylineno);
 
@@ -233,10 +279,52 @@ void yyerror(char *s)
     printf("\n|-----------------------------------------------|\n\n");
 }
 
-void create_symbol() {}
-void insert_symbol() {}
-int lookup_symbol() {}
+void create_symbol() {
+	struct symbol new_table[30];
+	for(int i;i<30;i++) new_table[i].index = -1;
+	global_table[table_num] = new_table;
+	printf("creat_symbol:\n");
+}
+void insert_symbol(char name[], char kind[], char type[], char attribute[]) {
+	struct symbol new_entry;
+	strcpy(new_entry.name, name);
+	strcpy(new_entry.kind, kind);
+	strcpy(new_entry.type, type);
+	new_entry.scope = table_num;
+	strcpy(new_entry.attribute, attribute);
+	int index = 0;
+	for(int i=0;i<30;i++) {
+		if(global_table[table_num][i].index == -1) {
+			index = i;
+			break;
+		}
+	}
+	new_entry.index = index;
+}
+int lookup_symbol(char name[]) {
+	printf("lookup:%s\n",name);
+	printf("lookup:%d %p\n",table_num, global_table[table_num]);
+	for(int i=0;i<30;i++) {
+		if(!strcmp(global_table[table_num][i].name, name)) {
+			return 1;
+		}
+	}
+	return 2;
+}
 void dump_symbol() {
-    printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
+	if(global_table[table_num][0].index != -1) {
+    	printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
            "Index", "Name", "Kind", "Type", "Scope", "Attribute");
+	}
+	for(int i=0;i<30;i++)	{
+		if(global_table[table_num][i].index != -1) {
+			printf("%-10d%-10s%-12s%-10s%-10d%-10s\n",
+					global_table[table_num][i].index, global_table[table_num][i].name, 
+					global_table[table_num][i].kind, global_table[table_num][i].type, 
+					global_table[table_num][i].scope, global_table[table_num][i].attribute);
+			continue;
+		}
+		break;
+	}
+	table_num++;
 }
