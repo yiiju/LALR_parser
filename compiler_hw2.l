@@ -42,7 +42,7 @@ id			{letter}+({letter}|{digit})*
 "!="	{ yylval.string_val = "!="; CONCAT; return NE; }
 
  /* Assignment */
-"="		{ yylval.string_val = "="; CONCAT; return ASGN; }
+"="		{ CONCAT; return ASGN; }
 "+="	{ yylval.string_val = "+="; CONCAT; return ADDASGN; }
 "-="	{ yylval.string_val = "-="; CONCAT; return SUBASGN; }
 "*="	{ yylval.string_val = "*="; CONCAT; return MULASGN; }
@@ -64,13 +64,13 @@ id			{letter}+({letter}|{digit})*
 ","		{ yylval.string_val = ","; CONCAT; return COMMA; }
 
  /* Print Keywords */	
-"print"		{ CONCAT; return PRINT; }
+"print"		{ yylval.string_val = yytext; CONCAT; return PRINT; }
 
  /* Condition and Loop Keywords */
-"if"		{ CONCAT; return IF; }
-"else"		{ CONCAT; return ELSE; }
-"for"		{ CONCAT; return FOR; }
-"while"		{ CONCAT; return WHILE; }
+"if"		{ yylval.string_val = yytext; CONCAT; return IF; }
+"else"		{ yylval.string_val = yytext; CONCAT; return ELSE; }
+"for"		{ yylval.string_val = yytext; CONCAT; return FOR; }
+"while"		{ yylval.string_val = yytext; CONCAT; return WHILE; }
 
  /* Declaration Keywords */
 "void"		{ CONCAT; yylval.string_val = "void"; return VOID; }
@@ -80,15 +80,15 @@ id			{letter}+({letter}|{digit})*
 "bool"  	{ CONCAT; yylval.string_val = "bool"; return BOOL; }
 
  /* boolean Keywords */
-"true"      { CONCAT; return TRUE; }
-"false"     { CONCAT; return FALSE; }
+"true"      { yylval.string_val = yytext; CONCAT; return TRUE; }
+"false"     { yylval.string_val = yytext; CONCAT; return FALSE; }
 
-"return"    { CONCAT; return RET; }
+"return"    { yylval.string_val = yytext; CONCAT; return RET; }
 
  /* String Constant */
 \"				        { BEGIN STRING_STATE; CONCAT; }
 <STRING_STATE>\"		{ BEGIN INITIAL; CONCAT; }
-<STRING_STATE>[^"]*		{ CONCAT; return S_CONST; }
+<STRING_STATE>[^"]*		{ yylval.string_val = yytext; CONCAT; return S_CONST; }
 
  /* Number Constant */
 {integer}	{ yylval.i_val = atoi(yytext); CONCAT; return I_CONST; }
@@ -123,11 +123,15 @@ id			{letter}+({letter}|{digit})*
  /* others */
 
 [;]         { yylval.string_val = yytext; CONCAT; return SEMICOLON; }
-[\n]        { CONCAT; printf("%d: %s", yylineno-1, buf); bzero(buf, BUF_SIZE); }
+[\n]        { 
+				CONCAT; 
+				printf("%d: %s", yylineno-1, buf); 
+				bzero(buf, BUF_SIZE); 
+			}
 [\t]		{ CONCAT; } /* Ignore */
 [ ]			{ CONCAT; }
 [^ \t\n] 	{ } /* Ignore other charactor sets */
-<<EOF>>     { }
+<<EOF>>     { return 0; }
 
 %%
 

@@ -933,7 +933,7 @@ YY_RULE_SETUP
 case 14:
 YY_RULE_SETUP
 #line 46 "compiler_hw2.l"
-{ yylval.string_val = "="; CONCAT; return ASGN; }
+{ CONCAT; return ASGN; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
@@ -1016,28 +1016,28 @@ YY_RULE_SETUP
 case 30:
 YY_RULE_SETUP
 #line 68 "compiler_hw2.l"
-{ CONCAT; return PRINT; }
+{ yylval.string_val = yytext; CONCAT; return PRINT; }
 	YY_BREAK
 /* Condition and Loop Keywords */
 case 31:
 YY_RULE_SETUP
 #line 71 "compiler_hw2.l"
-{ CONCAT; return IF; }
+{ yylval.string_val = yytext; CONCAT; return IF; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 72 "compiler_hw2.l"
-{ CONCAT; return ELSE; }
+{ yylval.string_val = yytext; CONCAT; return ELSE; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 73 "compiler_hw2.l"
-{ CONCAT; return FOR; }
+{ yylval.string_val = yytext; CONCAT; return FOR; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 74 "compiler_hw2.l"
-{ CONCAT; return WHILE; }
+{ yylval.string_val = yytext; CONCAT; return WHILE; }
 	YY_BREAK
 /* Declaration Keywords */
 case 35:
@@ -1069,17 +1069,17 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 84 "compiler_hw2.l"
-{ CONCAT; return TRUE; }
+{ yylval.string_val = yytext; CONCAT; return TRUE; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 85 "compiler_hw2.l"
-{ CONCAT; return FALSE; }
+{ yylval.string_val = yytext; CONCAT; return FALSE; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 87 "compiler_hw2.l"
-{ CONCAT; return RET; }
+{ yylval.string_val = yytext; CONCAT; return RET; }
 	YY_BREAK
 /* String Constant */
 case 43:
@@ -1096,7 +1096,7 @@ case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
 #line 92 "compiler_hw2.l"
-{ CONCAT; return S_CONST; }
+{ yylval.string_val = yytext; CONCAT; return S_CONST; }
 	YY_BREAK
 /* Number Constant */
 case 46:
@@ -1171,35 +1171,39 @@ case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
 #line 127 "compiler_hw2.l"
-{ CONCAT; printf("%d: %s", yylineno-1, buf); bzero(buf, BUF_SIZE); }
+{ 
+				CONCAT; 
+				printf("%d: %s", yylineno-1, buf); 
+				bzero(buf, BUF_SIZE); 
+			}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 128 "compiler_hw2.l"
+#line 132 "compiler_hw2.l"
 { CONCAT; } /* Ignore */
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 129 "compiler_hw2.l"
+#line 133 "compiler_hw2.l"
 { CONCAT; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 130 "compiler_hw2.l"
+#line 134 "compiler_hw2.l"
 { } /* Ignore other charactor sets */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_STATE):
-#line 131 "compiler_hw2.l"
-{ }
+#line 135 "compiler_hw2.l"
+{ return 0; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 133 "compiler_hw2.l"
+#line 137 "compiler_hw2.l"
 ECHO;
 	YY_BREAK
-#line 1203 "lex.yy.c"
+#line 1207 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2214,7 +2218,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 133 "compiler_hw2.l"
+#line 137 "compiler_hw2.l"
 
 
 int yywrap()

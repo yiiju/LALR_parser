@@ -22,12 +22,17 @@ struct symbol
 	char attribute[100];
 };
 
+struct scope
+{
+	struct symbol table[30];
+};
+
 int lookup_symbol(char[]);
 void create_symbol();
-void insert_symbol(char[], char[], char[], char[]);
+void insert_symbol(char[], char[], char[], char[], int);
 void dump_symbol();
 
-struct symbol* global_table[30];
+struct scope global_table[40];
 int table_num;
 
 %}
@@ -68,7 +73,6 @@ int table_num;
 */
 %type <string_val> type
 %type <string_val> ID INT FLOAT BOOL STRING VOID
-%type <string_val> ASGN
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -97,7 +101,7 @@ return_stat
 
 func
 	: func_parameter RB func_end
-	| RB LCB mul_stat RCB
+	| RB LCB mul_stat RCB { dump_symbol(); }
 ;
 
 func_end
@@ -108,37 +112,62 @@ func_end
 declaration
     : type ID ASGN initializer SEMICOLON 
 	{
-		printf("%s\n", $2);
-		int hasSymbol = lookup_symbol($2); 
-		if(hasSymbol != -1) {
-			insert_symbol($2, "variable", $1, "\0");
+		int index = lookup_symbol($2); 
+		if(index != -1) {
+			insert_symbol($2, "variable", $1, "\0", index);
 		}
 	}
     | type ID SEMICOLON
 	{
-		printf("%s\n",$2);
-		int hasSymbol = lookup_symbol($2); 
-		if(hasSymbol != -1) {
-			insert_symbol($2, "variable", $1, "\0");
+		int index = lookup_symbol($2); 
+		if(index != -1) {
+			insert_symbol($2, "variable", $1, "\0", index);
 		}
 	}
 	| type ID ASGN expression_stat SEMICOLON
-	| type ID LB { create_symbol(); } func
+	{
+		int index = lookup_symbol($2); 
+		if(index != -1) {
+			insert_symbol($2, "variable", $1, "\0", index);
+		}
+	}
+	| type ID LB { table_num++; create_symbol(); } func
+	{
+		int index = lookup_symbol($2); 
+		if(index != -1) {
+			char attr[100];
+			bzero(attr, 100);
+			int flag = 0;
+			for(int i=0;i<30;i++) {
+				if(global_table[table_num+1].table[i].index != -1) {
+					if(!strcmp(global_table[table_num+1].table[i].kind, "parameter")) {
+						if(flag == 1) {
+							strcat(attr, ", ");
+						}
+						strcat(attr, global_table[table_num+1].table[i].type);
+						flag = 1;
+					}
+				}
+				else break;
+			}
+			insert_symbol($2, "function", $1, attr, index);
+		}
+	}
 ;
 
 func_parameter
 	: func_parameter COMMA type ID
 	{
-		int hasSymbol = lookup_symbol($4); 
-		if(hasSymbol != -1) {
-			insert_symbol($4, "parameter", $3, "\0");
+		int index = lookup_symbol($4); 
+		if(index != -1) {
+			insert_symbol($4, "parameter", $3, "\0", index);
 		}
 	}
 	| type ID
 	{
-		int hasSymbol = lookup_symbol($2); 
-		if(hasSymbol != -1) {
-			insert_symbol($2, "parameter", $1, "\0");
+		int index = lookup_symbol($2); 
+		if(index != -1) {
+			insert_symbol($2, "parameter", $1, "\0", index);
 		}
 	}
 ;
@@ -185,12 +214,12 @@ factor
 ;
 
 iteration_stat
-	: WHILE LB iter_expression RB LCB mul_stat RCB 
-	| IF LB iter_expression RB LCB mul_stat RCB haselse
+	: WHILE LB iter_expression RB LCB { table_num++; create_symbol(); } mul_stat RCB { dump_symbol(); } 
+	| IF LB iter_expression RB LCB { table_num++; create_symbol(); }  mul_stat RCB { dump_symbol(); } haselse
 ;
 
 haselse
-	: ELSE haselseif LCB mul_stat RCB
+	: ELSE haselseif LCB { table_num++; create_symbol(); }  mul_stat RCB { dump_symbol(); }
 	| 
 ;
 
@@ -272,8 +301,12 @@ type
 int main(int argc, char** argv)
 {
     yylineno = 1;
+	
+	table_num = 0;
+	create_symbol();
 
     yyparse();
+	dump_symbol();
 	printf("\nTotal lines: %d \n",yylineno);
 
     return 0;
@@ -288,54 +321,57 @@ void yyerror(char *s)
 }
 
 void create_symbol() {
-	struct symbol new_table[30];
-	for(int i;i<30;i++) new_table[i].index = -1;
-	global_table[table_num] = new_table;
-	printf("creat_symbol:%p\n", new_table);
+	for(int i;i<30;i++) global_table[table_num].table[i].index = -1;
 }
-void insert_symbol(char name[], char kind[], char type[], char attribute[]) {
-	struct symbol new_entry;
-	strcpy(new_entry.name, name);
-	strcpy(new_entry.kind, kind);
-	strcpy(new_entry.type, type);
-	new_entry.scope = table_num;
-	strcpy(new_entry.attribute, attribute);
-	int index = 0;
+void insert_symbol(char name[], char kind[], char type[], char attribute[], int index) {
+	global_table[table_num].table[index].index = index;
+	strcpy(global_table[table_num].table[index].name, name);
+	strcpy(global_table[table_num].table[index].kind, kind);
+	strcpy(global_table[table_num].table[index].type, type);
+	global_table[table_num].table[index].scope = table_num;
+	strcpy(global_table[table_num].table[index].attribute, attribute);
 	int i;
 	for(i=0;i<30;i++) {
-		if(global_table[table_num][i].index == -1) {
+		if(global_table[table_num].table[i].index == -1) {
 			index = i;
 			break;
 		}
 	}
-	new_entry.index = index;
-	global_table[table_num][i] = new_entry;
+//	printf("insert_symbol:%d\n", table_num);
 }
 int lookup_symbol(char name[]) {
-	printf("lookup:%s\n",name);
+	//printf("lookup:%s\n",name);
 	int i;
 	for(i=0;i<30;i++) {
-		if(!strcmp(global_table[table_num][i].name, name)) {
+		if(!strcmp(global_table[table_num].table[i].name, name)) {
 			return -1;
 		}
 	}
-	strcpy(global_table[table_num][i].name, name);
-	return i;
+	for(i=0;i<30;i++) {
+		if(global_table[table_num].table[i].index == -1) {
+			strcpy(global_table[table_num].table[i].name, name);
+	//		printf("lookup_symbol:%d\n", i);
+			return i;
+		}
+	}
 }
 void dump_symbol() {
-	if(global_table[table_num][0].index != -1) {
+	if(global_table[table_num].table[0].index != -1) {
     	printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
            "Index", "Name", "Kind", "Type", "Scope", "Attribute");
 	}
-	for(int i=0;i<30;i++)	{
-		if(global_table[table_num][i].index != -1) {
+	for(int i=0;i<30;i++) {
+		if(global_table[table_num].table[i].index != -1) {
 			printf("%-10d%-10s%-12s%-10s%-10d%-10s\n",
-					global_table[table_num][i].index, global_table[table_num][i].name, 
-					global_table[table_num][i].kind, global_table[table_num][i].type, 
-					global_table[table_num][i].scope, global_table[table_num][i].attribute);
+					global_table[table_num].table[i].index, 
+					global_table[table_num].table[i].name, 
+					global_table[table_num].table[i].kind, 
+					global_table[table_num].table[i].type, 
+					global_table[table_num].table[i].scope, 
+					global_table[table_num].table[i].attribute);
 			continue;
 		}
 		break;
 	}
-	table_num++;
+	table_num--;
 }
