@@ -30,7 +30,9 @@ struct scope
 int lookup_symbol(char[]);
 void create_symbol();
 void insert_symbol(char[], char[], char[], char[], int);
-void dump_symbol();
+void dump_symbol(int);
+int dump_flag;
+int dump_scope;
 
 struct scope global_table[40];
 int table_num;
@@ -101,12 +103,12 @@ return_stat
 
 func
 	: func_parameter RB func_end
-	| RB LCB mul_stat RCB { dump_symbol(); }
+	| RB LCB mul_stat RCB { dump_flag = 1; dump_scope = table_num; table_num--; }
 ;
 
 func_end
 	: SEMICOLON
-	| LCB mul_stat RCB { dump_symbol(); }
+	| LCB mul_stat RCB { dump_flag = 1; dump_scope = table_num; table_num--; }
 ;
 
 declaration
@@ -214,12 +216,27 @@ factor
 ;
 
 iteration_stat
-	: WHILE LB iter_expression RB LCB { table_num++; create_symbol(); } mul_stat RCB { dump_symbol(); } 
-	| IF LB iter_expression RB LCB { table_num++; create_symbol(); }  mul_stat RCB { dump_symbol(); } haselse
+	: WHILE LB iter_expression RB LCB { table_num++; create_symbol(); } mul_stat RCB
+	{
+		dump_flag = 1; 
+		dump_scope = table_num; 
+		table_num--;
+	}
+	| IF LB iter_expression RB LCB { table_num++; create_symbol(); }  mul_stat RCB
+	{
+		dump_flag = 1; 
+		dump_scope = table_num; 
+		table_num--;
+	} haselse
 ;
 
 haselse
-	: ELSE haselseif LCB { table_num++; create_symbol(); }  mul_stat RCB { dump_symbol(); }
+	: ELSE haselseif LCB { table_num++; create_symbol(); }  mul_stat RCB
+	{
+		dump_flag = 1; 
+		dump_scope = table_num; 
+		table_num--;
+	}
 	| 
 ;
 
@@ -306,7 +323,7 @@ int main(int argc, char** argv)
 	create_symbol();
 
     yyparse();
-	dump_symbol();
+	dump_symbol(0);
 	printf("\nTotal lines: %d \n",yylineno);
 
     return 0;
@@ -355,23 +372,22 @@ int lookup_symbol(char name[]) {
 		}
 	}
 }
-void dump_symbol() {
-	if(global_table[table_num].table[0].index != -1) {
+void dump_symbol(int scope) {
+	if(global_table[scope].table[0].index != -1) {
     	printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
            "Index", "Name", "Kind", "Type", "Scope", "Attribute");
 	}
 	for(int i=0;i<30;i++) {
-		if(global_table[table_num].table[i].index != -1) {
+		if(global_table[scope].table[i].index != -1) {
 			printf("%-10d%-10s%-12s%-10s%-10d%-10s\n",
-					global_table[table_num].table[i].index, 
-					global_table[table_num].table[i].name, 
-					global_table[table_num].table[i].kind, 
-					global_table[table_num].table[i].type, 
-					global_table[table_num].table[i].scope, 
-					global_table[table_num].table[i].attribute);
+					global_table[scope].table[i].index, 
+					global_table[scope].table[i].name, 
+					global_table[scope].table[i].kind, 
+					global_table[scope].table[i].type, 
+					global_table[scope].table[i].scope, 
+					global_table[scope].table[i].attribute);
 			continue;
 		}
 		break;
 	}
-	table_num--;
 }
