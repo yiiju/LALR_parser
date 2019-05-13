@@ -1096,7 +1096,7 @@ case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
 #line 92 "compiler_hw2.l"
-{ yylval.string_val = yytext; CONCAT; return S_CONST; }
+{ CONCAT; return S_CONST; }
 	YY_BREAK
 /* Number Constant */
 case 46:
@@ -1154,47 +1154,52 @@ YY_RULE_SETUP
 case 54:
 YY_RULE_SETUP
 #line 117 "compiler_hw2.l"
-{ yylval.string_val = yytext; CONCAT; return ID; }
+{ 
+ 				yylval.string_val = yytext; 
+				//printf("lex:%s\n", yylval.string_val); 
+				CONCAT; 
+				return ID; 
+			}
 	YY_BREAK
 /* others */
 case 55:
 YY_RULE_SETUP
-#line 121 "compiler_hw2.l"
+#line 126 "compiler_hw2.l"
 { yylval.string_val = yytext; CONCAT; return SEMICOLON; }
 	YY_BREAK
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 122 "compiler_hw2.l"
+#line 127 "compiler_hw2.l"
 { CONCAT; printf("%d: %s", yylineno-1, buf); bzero(buf, BUF_SIZE); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 123 "compiler_hw2.l"
+#line 128 "compiler_hw2.l"
 { CONCAT; } /* Ignore */
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 124 "compiler_hw2.l"
+#line 129 "compiler_hw2.l"
 { CONCAT; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 125 "compiler_hw2.l"
+#line 130 "compiler_hw2.l"
 { } /* Ignore other charactor sets */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_STATE):
-#line 126 "compiler_hw2.l"
+#line 131 "compiler_hw2.l"
 { }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 128 "compiler_hw2.l"
+#line 133 "compiler_hw2.l"
 ECHO;
 	YY_BREAK
-#line 1198 "lex.yy.c"
+#line 1203 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2209,7 +2214,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 128 "compiler_hw2.l"
+#line 133 "compiler_hw2.l"
 
 
 int yywrap()

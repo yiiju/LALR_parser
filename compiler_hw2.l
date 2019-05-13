@@ -88,7 +88,7 @@ id			{letter}+({letter}|{digit})*
  /* String Constant */
 \"				        { BEGIN STRING_STATE; CONCAT; }
 <STRING_STATE>\"		{ BEGIN INITIAL; CONCAT; }
-<STRING_STATE>[^"]*		{ yylval.string_val = yytext; CONCAT; return S_CONST; }
+<STRING_STATE>[^"]*		{ CONCAT; return S_CONST; }
 
  /* Number Constant */
 {integer}	{ yylval.i_val = atoi(yytext); CONCAT; return I_CONST; }
@@ -113,7 +113,12 @@ id			{letter}+({letter}|{digit})*
 \/\/.*	{ CONCAT; return CPLUS_COMMENT; }
 
  /* Variable ID */
- {id}       { yylval.string_val = yytext; CONCAT; return ID; }
+ {id}       { 
+ 				yylval.string_val = yytext; 
+				//printf("lex:%s\n", yylval.string_val); 
+				CONCAT; 
+				return ID; 
+			}
 
  /* others */
 

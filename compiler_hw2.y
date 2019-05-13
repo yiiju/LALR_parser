@@ -68,6 +68,7 @@ int table_num;
 */
 %type <string_val> type
 %type <string_val> ID INT FLOAT BOOL STRING VOID
+%type <string_val> ASGN
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -81,7 +82,7 @@ program
 ;
 
 stat
-    : type ID declaration
+    : declaration 
     | expression
 	| iteration_stat
     | print_func
@@ -90,49 +91,56 @@ stat
 ;
 
 return_stat
-	: initializer
-	| expression_stat
+	: initializer SEMICOLON
+	| expression_stat SEMICOLON
 ;
 
 func
-	: func_declaration RB func_end
+	: func_parameter RB func_end
 	| RB LCB mul_stat RCB
 ;
 
 func_end
 	: SEMICOLON
-	| LCB mul_stat RCB
+	| LCB mul_stat RCB { dump_symbol(); }
 ;
 
 declaration
-    : ASGN initializer SEMICOLON 
-	/*
+    : type ID ASGN initializer SEMICOLON 
 	{
-		int hasSymbol = lookup_symbol($1); 
-		if(hasSymbol == 1) {
+		printf("%s\n", $2);
+		int hasSymbol = lookup_symbol($2); 
+		if(hasSymbol != -1) {
 			insert_symbol($2, "variable", $1, "\0");
-			printf("//%s//\n",$2);
 		}
 	}
-	*/
-    | SEMICOLON
-	| ASGN expression_stat SEMICOLON
-	| LB func
+    | type ID SEMICOLON
+	{
+		printf("%s\n",$2);
+		int hasSymbol = lookup_symbol($2); 
+		if(hasSymbol != -1) {
+			insert_symbol($2, "variable", $1, "\0");
+		}
+	}
+	| type ID ASGN expression_stat SEMICOLON
+	| type ID LB { create_symbol(); } func
 ;
 
-func_declaration
-	: func_declaration COMMA type ID
-	| type ID
-	/*
+func_parameter
+	: func_parameter COMMA type ID
 	{
-		int hasSymbol = lookup_symbol($1); 
-			printf("//%s//\n",$2);
-		if(hasSymbol == 1) {
-			printf("//%s//\n",$2);
+		int hasSymbol = lookup_symbol($4); 
+		if(hasSymbol != -1) {
+			insert_symbol($4, "parameter", $3, "\0");
+		}
+	}
+	| type ID
+	{
+		int hasSymbol = lookup_symbol($2); 
+		if(hasSymbol != -1) {
 			insert_symbol($2, "parameter", $1, "\0");
 		}
 	}
-	*/
 ;
 
 func_call
@@ -283,7 +291,7 @@ void create_symbol() {
 	struct symbol new_table[30];
 	for(int i;i<30;i++) new_table[i].index = -1;
 	global_table[table_num] = new_table;
-	printf("creat_symbol:\n");
+	printf("creat_symbol:%p\n", new_table);
 }
 void insert_symbol(char name[], char kind[], char type[], char attribute[]) {
 	struct symbol new_entry;
@@ -293,23 +301,26 @@ void insert_symbol(char name[], char kind[], char type[], char attribute[]) {
 	new_entry.scope = table_num;
 	strcpy(new_entry.attribute, attribute);
 	int index = 0;
-	for(int i=0;i<30;i++) {
+	int i;
+	for(i=0;i<30;i++) {
 		if(global_table[table_num][i].index == -1) {
 			index = i;
 			break;
 		}
 	}
 	new_entry.index = index;
+	global_table[table_num][i] = new_entry;
 }
 int lookup_symbol(char name[]) {
 	printf("lookup:%s\n",name);
-	printf("lookup:%d %p\n",table_num, global_table[table_num]);
-	for(int i=0;i<30;i++) {
+	int i;
+	for(i=0;i<30;i++) {
 		if(!strcmp(global_table[table_num][i].name, name)) {
-			return 1;
+			return -1;
 		}
 	}
-	return 2;
+	strcpy(global_table[table_num][i].name, name);
+	return i;
 }
 void dump_symbol() {
 	if(global_table[table_num][0].index != -1) {
