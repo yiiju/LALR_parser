@@ -1849,7 +1849,7 @@ int main(int argc, char** argv)
 
     yyparse();
 	dump_symbol(0);
-	printf("\nTotal lines: %d \n",yylineno);
+	printf("\nTotal lines: %d \n",yylineno-1);
 
     return 0;
 }
@@ -1902,9 +1902,11 @@ void dump_symbol(int scope) {
     	printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
            "Index", "Name", "Kind", "Type", "Scope", "Attribute");
 	}
+	int has = 0;
 	for(int i=0;i<30;i++) {
 		if(global_table[scope].table[i].index != -1) {
-			printf("%-10d%-10s%-12s%-10s%-10d%-10s\n",
+			has = 1;
+			printf("%-10d%-10s%-12s%-10s%-10d%-s\n",
 					global_table[scope].table[i].index, 
 					global_table[scope].table[i].name, 
 					global_table[scope].table[i].kind, 
@@ -1913,6 +1915,7 @@ void dump_symbol(int scope) {
 					global_table[scope].table[i].attribute);
 			continue;
 		}
+		if(has == 1) printf("\n");
 		break;
 	}
 }

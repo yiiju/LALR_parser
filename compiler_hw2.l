@@ -118,7 +118,7 @@ id			{letter}+({letter}|{digit})*
 
  /* Variable ID */
  {id}       { 
- 				yylval.string_val = yytext; 
+ 				yylval.string_val = strdup(yytext); 
 				//printf("lex:%s\n", yylval.string_val); 
 				CONCAT; 
 				return ID; 
@@ -129,7 +129,8 @@ id			{letter}+({letter}|{digit})*
 [;]         { yylval.string_val = yytext; CONCAT; return SEMICOLON; }
 [\n]        { 
 				CONCAT; 
-				printf("%d: %s", yylineno-1, buf); 
+				if(buf[0] == '\n') printf("%d:\n", yylineno-1);
+				else printf("%d: %s", yylineno-1, buf); 
 				bzero(buf, BUF_SIZE);
 				if(dump_flag == 1) {
 					dump_symbol(dump_scope);

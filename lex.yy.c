@@ -1159,7 +1159,7 @@ case 54:
 YY_RULE_SETUP
 #line 121 "compiler_hw2.l"
 { 
- 				yylval.string_val = yytext; 
+ 				yylval.string_val = strdup(yytext); 
 				//printf("lex:%s\n", yylval.string_val); 
 				CONCAT; 
 				return ID; 
@@ -1177,7 +1177,8 @@ YY_RULE_SETUP
 #line 131 "compiler_hw2.l"
 { 
 				CONCAT; 
-				printf("%d: %s", yylineno-1, buf); 
+				if(buf[0] == '\n') printf("%d:\n", yylineno-1);
+				else printf("%d: %s", yylineno-1, buf); 
 				bzero(buf, BUF_SIZE);
 				if(dump_flag == 1) {
 					dump_symbol(dump_scope);
@@ -1187,31 +1188,31 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 140 "compiler_hw2.l"
+#line 141 "compiler_hw2.l"
 { CONCAT; } /* Ignore */
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 141 "compiler_hw2.l"
+#line 142 "compiler_hw2.l"
 { CONCAT; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 142 "compiler_hw2.l"
+#line 143 "compiler_hw2.l"
 { } /* Ignore other charactor sets */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_STATE):
-#line 143 "compiler_hw2.l"
+#line 144 "compiler_hw2.l"
 { return 0; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 145 "compiler_hw2.l"
+#line 146 "compiler_hw2.l"
 ECHO;
 	YY_BREAK
-#line 1215 "lex.yy.c"
+#line 1216 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2226,7 +2227,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 145 "compiler_hw2.l"
+#line 146 "compiler_hw2.l"
 
 
 int yywrap()
