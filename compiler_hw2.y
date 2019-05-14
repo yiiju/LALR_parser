@@ -75,6 +75,8 @@ int table_num;
 */
 %type <string_val> type
 %type <string_val> ID INT FLOAT BOOL STRING VOID
+%type <string_val> func_end
+%type <string_val> SEMICOLON
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -102,13 +104,28 @@ return_stat
 ;
 
 func
-	: func_parameter RB func_end
-	| RB LCB mul_stat RCB { dump_flag = 1; dump_scope = table_num; table_num--; }
+	: func_parameter RB func_end 
+	{
+		if(!strcmp($3, ";")) {
+			table_num--;
+		}
+	}
+	| RB func_end
+	{
+		if(!strcmp($2, ";")) {
+			table_num--;
+		}
+	}
 ;
 
 func_end
 	: SEMICOLON
-	| LCB mul_stat RCB { dump_flag = 1; dump_scope = table_num; table_num--; }
+	| LCB mul_stat RCB
+	{ 
+		dump_flag = 1; 
+		dump_scope = table_num; 
+		table_num--; 
+	}
 ;
 
 declaration
@@ -338,7 +355,14 @@ void yyerror(char *s)
 }
 
 void create_symbol() {
-	for(int i;i<30;i++) global_table[table_num].table[i].index = -1;
+	for(int i;i<30;i++) {
+		global_table[table_num].table[i].index = -1;
+		strcpy(global_table[table_num].table[i].name, "\0");
+		strcpy(global_table[table_num].table[i].kind, "\0");
+		strcpy(global_table[table_num].table[i].type, "\0");
+		global_table[table_num].table[i].scope = table_num;
+		strcpy(global_table[table_num].table[i].attribute, "\0");
+	}
 }
 void insert_symbol(char name[], char kind[], char type[], char attribute[], int index) {
 	global_table[table_num].table[index].index = index;
