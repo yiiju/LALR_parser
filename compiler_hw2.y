@@ -276,8 +276,13 @@ expression
 ;
 
 expression_stat
-	: expression_stat ADD mul_expression_stat
-	| expression_stat SUB mul_expression_stat
+	: expression_stat relational add_expression_stat
+	| add_expression_stat
+;
+
+add_expression_stat
+	: add_expression_stat ADD mul_expression_stat
+	| add_expression_stat SUB mul_expression_stat
 	| mul_expression_stat
 ;
 
@@ -302,15 +307,6 @@ factor
 	}
 	| LB expression_stat RB
 	| ID arithmetic_postfix
-	{
-		if(lookup_symbol($1, "semantic") == -1) {
-			error_flag = 1;
-			bzero(sem_error_msg, 100);
-			strcat(sem_error_msg, "Undeclared variable ");
-			strcat(sem_error_msg, $1);
-		}
-	}
-	| ID relational factor 
 	{
 		if(lookup_symbol($1, "semantic") == -1) {
 			error_flag = 1;
