@@ -45,149 +45,148 @@ Grammar
    22 func_call: func_call COMMA const
    23          | const
 
-   24 const: I_CONST
-   25      | F_CONST
-   26      | S_CONST
-   27      | ID
+   24 const: S_CONST
+   25      | expression_stat
 
-   28 expression: ID asgn expression_stat SEMICOLON
-   29           | ID arithmetic_postfix SEMICOLON
-   30           | ID LB func_call RB SEMICOLON
-   31           | ID LB RB SEMICOLON
-   32           | SEMICOLON
+   26 expression: ID asgn expression_stat SEMICOLON
+   27           | ID arithmetic_postfix SEMICOLON
 
-   33 expression_stat: expression_stat ADD mul_expression_stat
-   34                | expression_stat SUB mul_expression_stat
-   35                | mul_expression_stat
+   28 $@2: %empty
 
-   36 mul_expression_stat: mul_expression_stat MUL factor
-   37                    | mul_expression_stat DIV factor
-   38                    | mul_expression_stat MOD factor
-   39                    | factor
+   29 expression: ID LB func_call RB $@2 SEMICOLON
+   30           | ID LB RB SEMICOLON
+   31           | SEMICOLON
 
-   40 factor: I_CONST
-   41       | F_CONST
-   42       | ID
-   43       | LB expression_stat RB
-   44       | ID arithmetic_postfix
+   32 expression_stat: expression_stat ADD mul_expression_stat
+   33                | expression_stat SUB mul_expression_stat
+   34                | mul_expression_stat
 
-   45 $@2: %empty
+   35 mul_expression_stat: mul_expression_stat MUL factor
+   36                    | mul_expression_stat DIV factor
+   37                    | mul_expression_stat MOD factor
+   38                    | factor
 
-   46 iteration_stat: WHILE LB iter_expression RB LCB $@2 mul_stat RCB
+   39 factor: I_CONST
+   40       | F_CONST
+   41       | ID
+   42       | LB expression_stat RB
+   43       | ID arithmetic_postfix
+   44       | ID relational factor
 
-   47 $@3: %empty
+   45 $@3: %empty
 
-   48 $@4: %empty
+   46 iteration_stat: WHILE LB expression_stat RB LCB $@3 mul_stat RCB
 
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 mul_stat RCB $@4 haselse
+   47 $@4: %empty
 
-   50 $@5: %empty
+   48 $@5: %empty
 
-   51 haselse: ELSE haselseif LCB $@5 mul_stat RCB
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 mul_stat RCB $@5 haselse
+
+   50 $@6: %empty
+
+   51 haselse: ELSE haselseif LCB $@6 mul_stat RCB
    52        | %empty
 
-   53 haselseif: IF LB iter_expression RB LCB mul_stat RCB moreelseif
+   53 haselseif: IF LB expression_stat RB LCB mul_stat RCB moreelseif
    54          | %empty
 
    55 moreelseif: ELSE haselseif
    56           | %empty
 
-   57 iter_expression: I_CONST
-   58                | ID relational factor
+   57 mul_stat: stat mul_stat
+   58         | stat
 
-   59 mul_stat: stat mul_stat
-   60         | stat
+   59 relational: MT
+   60           | LT
+   61           | MTE
+   62           | LTE
+   63           | EQ
+   64           | NE
 
-   61 relational: MT
-   62           | LT
-   63           | MTE
-   64           | LTE
-   65           | EQ
-   66           | NE
+   65 print_func: PRINT LB print_type
 
-   67 print_func: PRINT LB print_type
+   66 print_type: S_CONST RB SEMICOLON
+   67           | ID RB SEMICOLON
 
-   68 print_type: S_CONST RB SEMICOLON
-   69           | ID RB SEMICOLON
+   68 comment_stat: CPLUS_COMMENT
+   69             | START_COMMENT END_COMMENT
 
-   70 comment_stat: CPLUS_COMMENT
-   71             | START_COMMENT END_COMMENT
+   70 initializer: S_CONST
+   71            | TRUE
+   72            | FALSE
 
-   72 initializer: S_CONST
-   73            | TRUE
-   74            | FALSE
+   73 asgn: ASGN
+   74     | ADDASGN
+   75     | SUBASGN
+   76     | MULASGN
+   77     | DIVASGN
+   78     | MODASGN
 
-   75 asgn: ASGN
-   76     | ADDASGN
-   77     | SUBASGN
-   78     | MULASGN
-   79     | DIVASGN
-   80     | MODASGN
+   79 arithmetic_postfix: INC
+   80                   | DEC
 
-   81 arithmetic_postfix: INC
-   82                   | DEC
-
-   83 type: INT
-   84     | FLOAT
-   85     | BOOL
-   86     | STRING
-   87     | VOID
+   81 type: INT
+   82     | FLOAT
+   83     | BOOL
+   84     | STRING
+   85     | VOID
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 error (256)
-INT (258) 83
-FLOAT (259) 84
-STRING (260) 86
-BOOL (261) 85
-VOID (262) 87
-ADD (263) 33
-SUB (264) 34
-MUL (265) 36
-DIV (266) 37
-MOD (267) 38
-INC (268) 81
-DEC (269) 82
-MT (270) 61
-LT (271) 62
-MTE (272) 63
-LTE (273) 64
-EQ (274) 65
-NE (275) 66
-ASGN (276) 15 17 75
-ADDASGN (277) 76
-SUBASGN (278) 77
-MULASGN (279) 78
-DIVASGN (280) 79
-MODASGN (281) 80
+INT (258) 81
+FLOAT (259) 82
+STRING (260) 84
+BOOL (261) 83
+VOID (262) 85
+ADD (263) 32
+SUB (264) 33
+MUL (265) 35
+DIV (266) 36
+MOD (267) 37
+INC (268) 79
+DEC (269) 80
+MT (270) 59
+LT (271) 60
+MTE (272) 61
+LTE (273) 62
+EQ (274) 63
+NE (275) 64
+ASGN (276) 15 17 73
+ADDASGN (277) 74
+SUBASGN (278) 75
+MULASGN (279) 76
+DIVASGN (280) 77
+MODASGN (281) 78
 AND (282)
 OR (283)
 NOT (284)
-LB (285) 19 30 31 43 46 49 53 67
-RB (286) 11 12 30 31 43 46 49 53 68 69
+LB (285) 19 29 30 42 46 49 53 65
+RB (286) 11 12 29 30 42 46 49 53 66 67
 LCB (287) 14 46 49 51 53
 RCB (288) 14 46 49 51 53
 LSB (289)
 RSB (290)
 COMMA (291) 20 22
-PRINT (292) 67
+PRINT (292) 65
 IF (293) 49 53
 ELSE (294) 51 55
 FOR (295)
 WHILE (296) 46
-ID (297) 15 16 17 19 20 21 27 28 29 30 31 42 44 58 69
-SEMICOLON (298) 9 10 13 15 16 17 28 29 30 31 32 68 69
+ID (297) 15 16 17 19 20 21 26 27 29 30 41 43 44 67
+SEMICOLON (298) 9 10 13 15 16 17 26 27 29 30 31 66 67
 RET (299) 8
-START_COMMENT (300) 71
-END_COMMENT (301) 71
-CPLUS_COMMENT (302) 70
-I_CONST (303) 24 40 57
-F_CONST (304) 25 41
-S_CONST (305) 26 68 72
-TRUE (306) 73
-FALSE (307) 74
+START_COMMENT (300) 69
+END_COMMENT (301) 69
+CPLUS_COMMENT (302) 68
+I_CONST (303) 39
+F_CONST (304) 40
+S_CONST (305) 24 66 70
+TRUE (306) 71
+FALSE (307) 72
 
 
 Nonterminals, with rules where they appear
@@ -197,7 +196,7 @@ $accept (53)
 program (54)
     on left: 1 2, on right: 0 1
 stat (55)
-    on left: 3 4 5 6 7 8, on right: 1 59 60
+    on left: 3 4 5 6 7 8, on right: 1 57 58
 return_stat (56)
     on left: 9 10, on right: 8
 func (57)
@@ -211,53 +210,53 @@ $@1 (60)
 func_parameter (61)
     on left: 20 21, on right: 11 20
 func_call (62)
-    on left: 22 23, on right: 22 30
+    on left: 22 23, on right: 22 29
 const (63)
-    on left: 24 25 26 27, on right: 22 23
+    on left: 24 25, on right: 22 23
 expression (64)
-    on left: 28 29 30 31 32, on right: 4
-expression_stat (65)
-    on left: 33 34 35, on right: 10 17 28 33 34 43
-mul_expression_stat (66)
-    on left: 36 37 38 39, on right: 33 34 35 36 37 38
-factor (67)
-    on left: 40 41 42 43 44, on right: 36 37 38 39 58
-iteration_stat (68)
+    on left: 26 27 29 30 31, on right: 4
+$@2 (65)
+    on left: 28, on right: 29
+expression_stat (66)
+    on left: 32 33 34, on right: 10 17 25 26 32 33 42 46 49 53
+mul_expression_stat (67)
+    on left: 35 36 37 38, on right: 32 33 34 35 36 37
+factor (68)
+    on left: 39 40 41 42 43 44, on right: 35 36 37 38 44
+iteration_stat (69)
     on left: 46 49, on right: 5
-$@2 (69)
-    on left: 45, on right: 46
 $@3 (70)
-    on left: 47, on right: 49
+    on left: 45, on right: 46
 $@4 (71)
+    on left: 47, on right: 49
+$@5 (72)
     on left: 48, on right: 49
-haselse (72)
+haselse (73)
     on left: 51 52, on right: 49
-$@5 (73)
+$@6 (74)
     on left: 50, on right: 51
-haselseif (74)
+haselseif (75)
     on left: 53 54, on right: 51 55
-moreelseif (75)
+moreelseif (76)
     on left: 55 56, on right: 53
-iter_expression (76)
-    on left: 57 58, on right: 46 49 53
 mul_stat (77)
-    on left: 59 60, on right: 14 46 49 51 53 59
+    on left: 57 58, on right: 14 46 49 51 53 57
 relational (78)
-    on left: 61 62 63 64 65 66, on right: 58
+    on left: 59 60 61 62 63 64, on right: 44
 print_func (79)
-    on left: 67, on right: 6
+    on left: 65, on right: 6
 print_type (80)
-    on left: 68 69, on right: 67
+    on left: 66 67, on right: 65
 comment_stat (81)
-    on left: 70 71, on right: 7
+    on left: 68 69, on right: 7
 initializer (82)
-    on left: 72 73 74, on right: 9 15
+    on left: 70 71 72, on right: 9 15
 asgn (83)
-    on left: 75 76 77 78 79 80, on right: 28
+    on left: 73 74 75 76 77 78, on right: 26
 arithmetic_postfix (84)
-    on left: 81 82, on right: 29 44
+    on left: 79 80, on right: 27 43
 type (85)
-    on left: 83 84 85 86 87, on right: 15 16 17 19 20 21
+    on left: 81 82 83 84 85, on right: 15 16 17 19 20 21
 
 
 State 0
@@ -307,66 +306,66 @@ State 2
 
 State 3
 
-   83 type: INT .
+   81 type: INT .
 
-    $default  reduce using rule 83 (type)
+    $default  reduce using rule 81 (type)
 
 
 State 4
 
-   84 type: FLOAT .
+   82 type: FLOAT .
 
-    $default  reduce using rule 84 (type)
+    $default  reduce using rule 82 (type)
 
 
 State 5
 
-   86 type: STRING .
+   84 type: STRING .
 
-    $default  reduce using rule 86 (type)
+    $default  reduce using rule 84 (type)
 
 
 State 6
 
-   85 type: BOOL .
+   83 type: BOOL .
 
-    $default  reduce using rule 85 (type)
+    $default  reduce using rule 83 (type)
 
 
 State 7
 
-   87 type: VOID .
+   85 type: VOID .
 
-    $default  reduce using rule 87 (type)
+    $default  reduce using rule 85 (type)
 
 
 State 8
 
-   67 print_func: PRINT . LB print_type
+   65 print_func: PRINT . LB print_type
 
     LB  shift, and go to state 23
 
 
 State 9
 
-   49 iteration_stat: IF . LB iter_expression RB LCB $@3 mul_stat RCB $@4 haselse
+   49 iteration_stat: IF . LB expression_stat RB LCB $@4 mul_stat RCB $@5 haselse
 
     LB  shift, and go to state 24
 
 
 State 10
 
-   46 iteration_stat: WHILE . LB iter_expression RB LCB $@2 mul_stat RCB
+   46 iteration_stat: WHILE . LB expression_stat RB LCB $@3 mul_stat RCB
 
     LB  shift, and go to state 25
 
 
 State 11
 
-   28 expression: ID . asgn expression_stat SEMICOLON
-   29           | ID . arithmetic_postfix SEMICOLON
-   30           | ID . LB func_call RB SEMICOLON
-   31           | ID . LB RB SEMICOLON
+   26 expression: ID . asgn expression_stat SEMICOLON
+   27           | ID . arithmetic_postfix SEMICOLON
+   29           | ID . LB func_call RB $@2 SEMICOLON
+   30           | ID . LB RB SEMICOLON
 
     INC      shift, and go to state 26
     DEC      shift, and go to state 27
@@ -384,9 +383,9 @@ State 11
 
 State 12
 
-   32 expression: SEMICOLON .
+   31 expression: SEMICOLON .
 
-    $default  reduce using rule 32 (expression)
+    $default  reduce using rule 31 (expression)
 
 
 State 13
@@ -410,16 +409,16 @@ State 13
 
 State 14
 
-   71 comment_stat: START_COMMENT . END_COMMENT
+   69 comment_stat: START_COMMENT . END_COMMENT
 
     END_COMMENT  shift, and go to state 49
 
 
 State 15
 
-   70 comment_stat: CPLUS_COMMENT .
+   68 comment_stat: CPLUS_COMMENT .
 
-    $default  reduce using rule 70 (comment_stat)
+    $default  reduce using rule 68 (comment_stat)
 
 
 State 16
@@ -476,7 +475,7 @@ State 22
 
 State 23
 
-   67 print_func: PRINT LB . print_type
+   65 print_func: PRINT LB . print_type
 
     ID       shift, and go to state 51
     S_CONST  shift, and go to state 52
@@ -486,176 +485,196 @@ State 23
 
 State 24
 
-   49 iteration_stat: IF LB . iter_expression RB LCB $@3 mul_stat RCB $@4 haselse
-
-    ID       shift, and go to state 54
-    I_CONST  shift, and go to state 55
-
-    iter_expression  go to state 56
-
-
-State 25
-
-   46 iteration_stat: WHILE LB . iter_expression RB LCB $@2 mul_stat RCB
-
-    ID       shift, and go to state 54
-    I_CONST  shift, and go to state 55
-
-    iter_expression  go to state 57
-
-
-State 26
-
-   81 arithmetic_postfix: INC .
-
-    $default  reduce using rule 81 (arithmetic_postfix)
-
-
-State 27
-
-   82 arithmetic_postfix: DEC .
-
-    $default  reduce using rule 82 (arithmetic_postfix)
-
-
-State 28
-
-   75 asgn: ASGN .
-
-    $default  reduce using rule 75 (asgn)
-
-
-State 29
-
-   76 asgn: ADDASGN .
-
-    $default  reduce using rule 76 (asgn)
-
-
-State 30
-
-   77 asgn: SUBASGN .
-
-    $default  reduce using rule 77 (asgn)
-
-
-State 31
-
-   78 asgn: MULASGN .
-
-    $default  reduce using rule 78 (asgn)
-
-
-State 32
-
-   79 asgn: DIVASGN .
-
-    $default  reduce using rule 79 (asgn)
-
-
-State 33
-
-   80 asgn: MODASGN .
-
-    $default  reduce using rule 80 (asgn)
-
-
-State 34
-
-   30 expression: ID LB . func_call RB SEMICOLON
-   31           | ID LB . RB SEMICOLON
-
-    RB       shift, and go to state 58
-    ID       shift, and go to state 59
-    I_CONST  shift, and go to state 60
-    F_CONST  shift, and go to state 61
-    S_CONST  shift, and go to state 62
-
-    func_call  go to state 63
-    const      go to state 64
-
-
-State 35
-
-   28 expression: ID asgn . expression_stat SEMICOLON
+   49 iteration_stat: IF LB . expression_stat RB LCB $@4 mul_stat RCB $@5 haselse
 
     LB       shift, and go to state 37
     ID       shift, and go to state 38
     I_CONST  shift, and go to state 39
     F_CONST  shift, and go to state 40
 
-    expression_stat      go to state 65
+    expression_stat      go to state 54
+    mul_expression_stat  go to state 46
+    factor               go to state 47
+
+
+State 25
+
+   46 iteration_stat: WHILE LB . expression_stat RB LCB $@3 mul_stat RCB
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    expression_stat      go to state 55
+    mul_expression_stat  go to state 46
+    factor               go to state 47
+
+
+State 26
+
+   79 arithmetic_postfix: INC .
+
+    $default  reduce using rule 79 (arithmetic_postfix)
+
+
+State 27
+
+   80 arithmetic_postfix: DEC .
+
+    $default  reduce using rule 80 (arithmetic_postfix)
+
+
+State 28
+
+   73 asgn: ASGN .
+
+    $default  reduce using rule 73 (asgn)
+
+
+State 29
+
+   74 asgn: ADDASGN .
+
+    $default  reduce using rule 74 (asgn)
+
+
+State 30
+
+   75 asgn: SUBASGN .
+
+    $default  reduce using rule 75 (asgn)
+
+
+State 31
+
+   76 asgn: MULASGN .
+
+    $default  reduce using rule 76 (asgn)
+
+
+State 32
+
+   77 asgn: DIVASGN .
+
+    $default  reduce using rule 77 (asgn)
+
+
+State 33
+
+   78 asgn: MODASGN .
+
+    $default  reduce using rule 78 (asgn)
+
+
+State 34
+
+   29 expression: ID LB . func_call RB $@2 SEMICOLON
+   30           | ID LB . RB SEMICOLON
+
+    LB       shift, and go to state 37
+    RB       shift, and go to state 56
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+    S_CONST  shift, and go to state 57
+
+    func_call            go to state 58
+    const                go to state 59
+    expression_stat      go to state 60
+    mul_expression_stat  go to state 46
+    factor               go to state 47
+
+
+State 35
+
+   26 expression: ID asgn . expression_stat SEMICOLON
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    expression_stat      go to state 61
     mul_expression_stat  go to state 46
     factor               go to state 47
 
 
 State 36
 
-   29 expression: ID arithmetic_postfix . SEMICOLON
+   27 expression: ID arithmetic_postfix . SEMICOLON
 
-    SEMICOLON  shift, and go to state 66
+    SEMICOLON  shift, and go to state 62
 
 
 State 37
 
-   43 factor: LB . expression_stat RB
+   42 factor: LB . expression_stat RB
 
     LB       shift, and go to state 37
     ID       shift, and go to state 38
     I_CONST  shift, and go to state 39
     F_CONST  shift, and go to state 40
 
-    expression_stat      go to state 67
+    expression_stat      go to state 63
     mul_expression_stat  go to state 46
     factor               go to state 47
 
 
 State 38
 
-   42 factor: ID .
-   44       | ID . arithmetic_postfix
+   41 factor: ID .
+   43       | ID . arithmetic_postfix
+   44       | ID . relational factor
 
     INC  shift, and go to state 26
     DEC  shift, and go to state 27
+    MT   shift, and go to state 64
+    LT   shift, and go to state 65
+    MTE  shift, and go to state 66
+    LTE  shift, and go to state 67
+    EQ   shift, and go to state 68
+    NE   shift, and go to state 69
 
-    $default  reduce using rule 42 (factor)
+    $default  reduce using rule 41 (factor)
 
-    arithmetic_postfix  go to state 68
+    relational          go to state 70
+    arithmetic_postfix  go to state 71
 
 
 State 39
 
-   40 factor: I_CONST .
+   39 factor: I_CONST .
 
-    $default  reduce using rule 40 (factor)
+    $default  reduce using rule 39 (factor)
 
 
 State 40
 
-   41 factor: F_CONST .
+   40 factor: F_CONST .
 
-    $default  reduce using rule 41 (factor)
+    $default  reduce using rule 40 (factor)
 
 
 State 41
 
-   72 initializer: S_CONST .
+   70 initializer: S_CONST .
 
-    $default  reduce using rule 72 (initializer)
+    $default  reduce using rule 70 (initializer)
 
 
 State 42
 
-   73 initializer: TRUE .
+   71 initializer: TRUE .
 
-    $default  reduce using rule 73 (initializer)
+    $default  reduce using rule 71 (initializer)
 
 
 State 43
 
-   74 initializer: FALSE .
+   72 initializer: FALSE .
 
-    $default  reduce using rule 74 (initializer)
+    $default  reduce using rule 72 (initializer)
 
 
 State 44
@@ -668,47 +687,47 @@ State 44
 State 45
 
    10 return_stat: expression_stat . SEMICOLON
-   33 expression_stat: expression_stat . ADD mul_expression_stat
-   34                | expression_stat . SUB mul_expression_stat
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
 
-    ADD        shift, and go to state 69
-    SUB        shift, and go to state 70
-    SEMICOLON  shift, and go to state 71
+    ADD        shift, and go to state 72
+    SUB        shift, and go to state 73
+    SEMICOLON  shift, and go to state 74
 
 
 State 46
 
-   35 expression_stat: mul_expression_stat .
-   36 mul_expression_stat: mul_expression_stat . MUL factor
-   37                    | mul_expression_stat . DIV factor
-   38                    | mul_expression_stat . MOD factor
+   34 expression_stat: mul_expression_stat .
+   35 mul_expression_stat: mul_expression_stat . MUL factor
+   36                    | mul_expression_stat . DIV factor
+   37                    | mul_expression_stat . MOD factor
 
-    MUL  shift, and go to state 72
-    DIV  shift, and go to state 73
-    MOD  shift, and go to state 74
+    MUL  shift, and go to state 75
+    DIV  shift, and go to state 76
+    MOD  shift, and go to state 77
 
-    $default  reduce using rule 35 (expression_stat)
+    $default  reduce using rule 34 (expression_stat)
 
 
 State 47
 
-   39 mul_expression_stat: factor .
+   38 mul_expression_stat: factor .
 
-    $default  reduce using rule 39 (mul_expression_stat)
+    $default  reduce using rule 38 (mul_expression_stat)
 
 
 State 48
 
     9 return_stat: initializer . SEMICOLON
 
-    SEMICOLON  shift, and go to state 75
+    SEMICOLON  shift, and go to state 78
 
 
 State 49
 
-   71 comment_stat: START_COMMENT END_COMMENT .
+   69 comment_stat: START_COMMENT END_COMMENT .
 
-    $default  reduce using rule 71 (comment_stat)
+    $default  reduce using rule 69 (comment_stat)
 
 
 State 50
@@ -718,231 +737,263 @@ State 50
    17            | type ID . ASGN expression_stat SEMICOLON
    19            | type ID . LB $@1 func
 
-    ASGN       shift, and go to state 76
-    LB         shift, and go to state 77
-    SEMICOLON  shift, and go to state 78
+    ASGN       shift, and go to state 79
+    LB         shift, and go to state 80
+    SEMICOLON  shift, and go to state 81
 
 
 State 51
 
-   69 print_type: ID . RB SEMICOLON
+   67 print_type: ID . RB SEMICOLON
 
-    RB  shift, and go to state 79
+    RB  shift, and go to state 82
 
 
 State 52
 
-   68 print_type: S_CONST . RB SEMICOLON
+   66 print_type: S_CONST . RB SEMICOLON
 
-    RB  shift, and go to state 80
+    RB  shift, and go to state 83
 
 
 State 53
 
-   67 print_func: PRINT LB print_type .
+   65 print_func: PRINT LB print_type .
 
-    $default  reduce using rule 67 (print_func)
+    $default  reduce using rule 65 (print_func)
 
 
 State 54
 
-   58 iter_expression: ID . relational factor
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+   49 iteration_stat: IF LB expression_stat . RB LCB $@4 mul_stat RCB $@5 haselse
 
-    MT   shift, and go to state 81
-    LT   shift, and go to state 82
-    MTE  shift, and go to state 83
-    LTE  shift, and go to state 84
-    EQ   shift, and go to state 85
-    NE   shift, and go to state 86
-
-    relational  go to state 87
+    ADD  shift, and go to state 72
+    SUB  shift, and go to state 73
+    RB   shift, and go to state 84
 
 
 State 55
 
-   57 iter_expression: I_CONST .
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+   46 iteration_stat: WHILE LB expression_stat . RB LCB $@3 mul_stat RCB
 
-    $default  reduce using rule 57 (iter_expression)
+    ADD  shift, and go to state 72
+    SUB  shift, and go to state 73
+    RB   shift, and go to state 85
 
 
 State 56
 
-   49 iteration_stat: IF LB iter_expression . RB LCB $@3 mul_stat RCB $@4 haselse
+   30 expression: ID LB RB . SEMICOLON
 
-    RB  shift, and go to state 88
+    SEMICOLON  shift, and go to state 86
 
 
 State 57
 
-   46 iteration_stat: WHILE LB iter_expression . RB LCB $@2 mul_stat RCB
-
-    RB  shift, and go to state 89
-
-
-State 58
-
-   31 expression: ID LB RB . SEMICOLON
-
-    SEMICOLON  shift, and go to state 90
-
-
-State 59
-
-   27 const: ID .
-
-    $default  reduce using rule 27 (const)
-
-
-State 60
-
-   24 const: I_CONST .
+   24 const: S_CONST .
 
     $default  reduce using rule 24 (const)
 
 
-State 61
-
-   25 const: F_CONST .
-
-    $default  reduce using rule 25 (const)
-
-
-State 62
-
-   26 const: S_CONST .
-
-    $default  reduce using rule 26 (const)
-
-
-State 63
+State 58
 
    22 func_call: func_call . COMMA const
-   30 expression: ID LB func_call . RB SEMICOLON
+   29 expression: ID LB func_call . RB $@2 SEMICOLON
 
-    RB     shift, and go to state 91
-    COMMA  shift, and go to state 92
+    RB     shift, and go to state 87
+    COMMA  shift, and go to state 88
 
 
-State 64
+State 59
 
    23 func_call: const .
 
     $default  reduce using rule 23 (func_call)
 
 
+State 60
+
+   25 const: expression_stat .
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+
+    ADD  shift, and go to state 72
+    SUB  shift, and go to state 73
+
+    $default  reduce using rule 25 (const)
+
+
+State 61
+
+   26 expression: ID asgn expression_stat . SEMICOLON
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+
+    ADD        shift, and go to state 72
+    SUB        shift, and go to state 73
+    SEMICOLON  shift, and go to state 89
+
+
+State 62
+
+   27 expression: ID arithmetic_postfix SEMICOLON .
+
+    $default  reduce using rule 27 (expression)
+
+
+State 63
+
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+   42 factor: LB expression_stat . RB
+
+    ADD  shift, and go to state 72
+    SUB  shift, and go to state 73
+    RB   shift, and go to state 90
+
+
+State 64
+
+   59 relational: MT .
+
+    $default  reduce using rule 59 (relational)
+
+
 State 65
 
-   28 expression: ID asgn expression_stat . SEMICOLON
-   33 expression_stat: expression_stat . ADD mul_expression_stat
-   34                | expression_stat . SUB mul_expression_stat
+   60 relational: LT .
 
-    ADD        shift, and go to state 69
-    SUB        shift, and go to state 70
-    SEMICOLON  shift, and go to state 93
+    $default  reduce using rule 60 (relational)
 
 
 State 66
 
-   29 expression: ID arithmetic_postfix SEMICOLON .
+   61 relational: MTE .
 
-    $default  reduce using rule 29 (expression)
+    $default  reduce using rule 61 (relational)
 
 
 State 67
 
-   33 expression_stat: expression_stat . ADD mul_expression_stat
-   34                | expression_stat . SUB mul_expression_stat
-   43 factor: LB expression_stat . RB
+   62 relational: LTE .
 
-    ADD  shift, and go to state 69
-    SUB  shift, and go to state 70
-    RB   shift, and go to state 94
+    $default  reduce using rule 62 (relational)
 
 
 State 68
 
-   44 factor: ID arithmetic_postfix .
+   63 relational: EQ .
 
-    $default  reduce using rule 44 (factor)
+    $default  reduce using rule 63 (relational)
 
 
 State 69
 
-   33 expression_stat: expression_stat ADD . mul_expression_stat
+   64 relational: NE .
 
-    LB       shift, and go to state 37
-    ID       shift, and go to state 38
-    I_CONST  shift, and go to state 39
-    F_CONST  shift, and go to state 40
-
-    mul_expression_stat  go to state 95
-    factor               go to state 47
+    $default  reduce using rule 64 (relational)
 
 
 State 70
 
-   34 expression_stat: expression_stat SUB . mul_expression_stat
+   44 factor: ID relational . factor
 
     LB       shift, and go to state 37
     ID       shift, and go to state 38
     I_CONST  shift, and go to state 39
     F_CONST  shift, and go to state 40
 
-    mul_expression_stat  go to state 96
-    factor               go to state 47
+    factor  go to state 91
 
 
 State 71
+
+   43 factor: ID arithmetic_postfix .
+
+    $default  reduce using rule 43 (factor)
+
+
+State 72
+
+   32 expression_stat: expression_stat ADD . mul_expression_stat
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    mul_expression_stat  go to state 92
+    factor               go to state 47
+
+
+State 73
+
+   33 expression_stat: expression_stat SUB . mul_expression_stat
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    mul_expression_stat  go to state 93
+    factor               go to state 47
+
+
+State 74
 
    10 return_stat: expression_stat SEMICOLON .
 
     $default  reduce using rule 10 (return_stat)
 
 
-State 72
-
-   36 mul_expression_stat: mul_expression_stat MUL . factor
-
-    LB       shift, and go to state 37
-    ID       shift, and go to state 38
-    I_CONST  shift, and go to state 39
-    F_CONST  shift, and go to state 40
-
-    factor  go to state 97
-
-
-State 73
-
-   37 mul_expression_stat: mul_expression_stat DIV . factor
-
-    LB       shift, and go to state 37
-    ID       shift, and go to state 38
-    I_CONST  shift, and go to state 39
-    F_CONST  shift, and go to state 40
-
-    factor  go to state 98
-
-
-State 74
-
-   38 mul_expression_stat: mul_expression_stat MOD . factor
-
-    LB       shift, and go to state 37
-    ID       shift, and go to state 38
-    I_CONST  shift, and go to state 39
-    F_CONST  shift, and go to state 40
-
-    factor  go to state 99
-
-
 State 75
+
+   35 mul_expression_stat: mul_expression_stat MUL . factor
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    factor  go to state 94
+
+
+State 76
+
+   36 mul_expression_stat: mul_expression_stat DIV . factor
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    factor  go to state 95
+
+
+State 77
+
+   37 mul_expression_stat: mul_expression_stat MOD . factor
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    factor  go to state 96
+
+
+State 78
 
     9 return_stat: initializer SEMICOLON .
 
     $default  reduce using rule 9 (return_stat)
 
 
-State 76
+State 79
 
    15 declaration: type ID ASGN . initializer SEMICOLON
    17            | type ID ASGN . expression_stat SEMICOLON
@@ -955,218 +1006,177 @@ State 76
     TRUE     shift, and go to state 42
     FALSE    shift, and go to state 43
 
-    expression_stat      go to state 100
+    expression_stat      go to state 97
     mul_expression_stat  go to state 46
     factor               go to state 47
-    initializer          go to state 101
+    initializer          go to state 98
 
 
-State 77
+State 80
 
    19 declaration: type ID LB . $@1 func
 
     $default  reduce using rule 18 ($@1)
 
-    $@1  go to state 102
+    $@1  go to state 99
 
 
-State 78
+State 81
 
    16 declaration: type ID SEMICOLON .
 
     $default  reduce using rule 16 (declaration)
 
 
-State 79
-
-   69 print_type: ID RB . SEMICOLON
-
-    SEMICOLON  shift, and go to state 103
-
-
-State 80
-
-   68 print_type: S_CONST RB . SEMICOLON
-
-    SEMICOLON  shift, and go to state 104
-
-
-State 81
-
-   61 relational: MT .
-
-    $default  reduce using rule 61 (relational)
-
-
 State 82
 
-   62 relational: LT .
+   67 print_type: ID RB . SEMICOLON
 
-    $default  reduce using rule 62 (relational)
+    SEMICOLON  shift, and go to state 100
 
 
 State 83
 
-   63 relational: MTE .
+   66 print_type: S_CONST RB . SEMICOLON
 
-    $default  reduce using rule 63 (relational)
+    SEMICOLON  shift, and go to state 101
 
 
 State 84
 
-   64 relational: LTE .
+   49 iteration_stat: IF LB expression_stat RB . LCB $@4 mul_stat RCB $@5 haselse
 
-    $default  reduce using rule 64 (relational)
+    LCB  shift, and go to state 102
 
 
 State 85
 
-   65 relational: EQ .
+   46 iteration_stat: WHILE LB expression_stat RB . LCB $@3 mul_stat RCB
 
-    $default  reduce using rule 65 (relational)
+    LCB  shift, and go to state 103
 
 
 State 86
 
-   66 relational: NE .
+   30 expression: ID LB RB SEMICOLON .
 
-    $default  reduce using rule 66 (relational)
+    $default  reduce using rule 30 (expression)
 
 
 State 87
 
-   58 iter_expression: ID relational . factor
+   29 expression: ID LB func_call RB . $@2 SEMICOLON
+
+    $default  reduce using rule 28 ($@2)
+
+    $@2  go to state 104
+
+
+State 88
+
+   22 func_call: func_call COMMA . const
 
     LB       shift, and go to state 37
     ID       shift, and go to state 38
     I_CONST  shift, and go to state 39
     F_CONST  shift, and go to state 40
+    S_CONST  shift, and go to state 57
 
-    factor  go to state 105
-
-
-State 88
-
-   49 iteration_stat: IF LB iter_expression RB . LCB $@3 mul_stat RCB $@4 haselse
-
-    LCB  shift, and go to state 106
+    const                go to state 105
+    expression_stat      go to state 60
+    mul_expression_stat  go to state 46
+    factor               go to state 47
 
 
 State 89
 
-   46 iteration_stat: WHILE LB iter_expression RB . LCB $@2 mul_stat RCB
+   26 expression: ID asgn expression_stat SEMICOLON .
 
-    LCB  shift, and go to state 107
+    $default  reduce using rule 26 (expression)
 
 
 State 90
 
-   31 expression: ID LB RB SEMICOLON .
+   42 factor: LB expression_stat RB .
 
-    $default  reduce using rule 31 (expression)
+    $default  reduce using rule 42 (factor)
 
 
 State 91
 
-   30 expression: ID LB func_call RB . SEMICOLON
+   44 factor: ID relational factor .
 
-    SEMICOLON  shift, and go to state 108
+    $default  reduce using rule 44 (factor)
 
 
 State 92
 
-   22 func_call: func_call COMMA . const
+   32 expression_stat: expression_stat ADD mul_expression_stat .
+   35 mul_expression_stat: mul_expression_stat . MUL factor
+   36                    | mul_expression_stat . DIV factor
+   37                    | mul_expression_stat . MOD factor
 
-    ID       shift, and go to state 59
-    I_CONST  shift, and go to state 60
-    F_CONST  shift, and go to state 61
-    S_CONST  shift, and go to state 62
+    MUL  shift, and go to state 75
+    DIV  shift, and go to state 76
+    MOD  shift, and go to state 77
 
-    const  go to state 109
+    $default  reduce using rule 32 (expression_stat)
 
 
 State 93
 
-   28 expression: ID asgn expression_stat SEMICOLON .
+   33 expression_stat: expression_stat SUB mul_expression_stat .
+   35 mul_expression_stat: mul_expression_stat . MUL factor
+   36                    | mul_expression_stat . DIV factor
+   37                    | mul_expression_stat . MOD factor
 
-    $default  reduce using rule 28 (expression)
-
-
-State 94
-
-   43 factor: LB expression_stat RB .
-
-    $default  reduce using rule 43 (factor)
-
-
-State 95
-
-   33 expression_stat: expression_stat ADD mul_expression_stat .
-   36 mul_expression_stat: mul_expression_stat . MUL factor
-   37                    | mul_expression_stat . DIV factor
-   38                    | mul_expression_stat . MOD factor
-
-    MUL  shift, and go to state 72
-    DIV  shift, and go to state 73
-    MOD  shift, and go to state 74
+    MUL  shift, and go to state 75
+    DIV  shift, and go to state 76
+    MOD  shift, and go to state 77
 
     $default  reduce using rule 33 (expression_stat)
 
 
-State 96
+State 94
 
-   34 expression_stat: expression_stat SUB mul_expression_stat .
-   36 mul_expression_stat: mul_expression_stat . MUL factor
-   37                    | mul_expression_stat . DIV factor
-   38                    | mul_expression_stat . MOD factor
+   35 mul_expression_stat: mul_expression_stat MUL factor .
 
-    MUL  shift, and go to state 72
-    DIV  shift, and go to state 73
-    MOD  shift, and go to state 74
-
-    $default  reduce using rule 34 (expression_stat)
+    $default  reduce using rule 35 (mul_expression_stat)
 
 
-State 97
+State 95
 
-   36 mul_expression_stat: mul_expression_stat MUL factor .
+   36 mul_expression_stat: mul_expression_stat DIV factor .
 
     $default  reduce using rule 36 (mul_expression_stat)
 
 
-State 98
+State 96
 
-   37 mul_expression_stat: mul_expression_stat DIV factor .
+   37 mul_expression_stat: mul_expression_stat MOD factor .
 
     $default  reduce using rule 37 (mul_expression_stat)
 
 
-State 99
-
-   38 mul_expression_stat: mul_expression_stat MOD factor .
-
-    $default  reduce using rule 38 (mul_expression_stat)
-
-
-State 100
+State 97
 
    17 declaration: type ID ASGN expression_stat . SEMICOLON
-   33 expression_stat: expression_stat . ADD mul_expression_stat
-   34                | expression_stat . SUB mul_expression_stat
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
 
-    ADD        shift, and go to state 69
-    SUB        shift, and go to state 70
-    SEMICOLON  shift, and go to state 110
+    ADD        shift, and go to state 72
+    SUB        shift, and go to state 73
+    SEMICOLON  shift, and go to state 106
 
 
-State 101
+State 98
 
    15 declaration: type ID ASGN initializer . SEMICOLON
 
-    SEMICOLON  shift, and go to state 111
+    SEMICOLON  shift, and go to state 107
 
 
-State 102
+State 99
 
    19 declaration: type ID LB $@1 . func
 
@@ -1175,144 +1185,109 @@ State 102
     STRING  shift, and go to state 5
     BOOL    shift, and go to state 6
     VOID    shift, and go to state 7
-    RB      shift, and go to state 112
+    RB      shift, and go to state 108
 
-    func            go to state 113
-    func_parameter  go to state 114
-    type            go to state 115
+    func            go to state 109
+    func_parameter  go to state 110
+    type            go to state 111
+
+
+State 100
+
+   67 print_type: ID RB SEMICOLON .
+
+    $default  reduce using rule 67 (print_type)
+
+
+State 101
+
+   66 print_type: S_CONST RB SEMICOLON .
+
+    $default  reduce using rule 66 (print_type)
+
+
+State 102
+
+   49 iteration_stat: IF LB expression_stat RB LCB . $@4 mul_stat RCB $@5 haselse
+
+    $default  reduce using rule 47 ($@4)
+
+    $@4  go to state 112
 
 
 State 103
 
-   69 print_type: ID RB SEMICOLON .
+   46 iteration_stat: WHILE LB expression_stat RB LCB . $@3 mul_stat RCB
 
-    $default  reduce using rule 69 (print_type)
+    $default  reduce using rule 45 ($@3)
+
+    $@3  go to state 113
 
 
 State 104
 
-   68 print_type: S_CONST RB SEMICOLON .
+   29 expression: ID LB func_call RB $@2 . SEMICOLON
 
-    $default  reduce using rule 68 (print_type)
+    SEMICOLON  shift, and go to state 114
 
 
 State 105
-
-   58 iter_expression: ID relational factor .
-
-    $default  reduce using rule 58 (iter_expression)
-
-
-State 106
-
-   49 iteration_stat: IF LB iter_expression RB LCB . $@3 mul_stat RCB $@4 haselse
-
-    $default  reduce using rule 47 ($@3)
-
-    $@3  go to state 116
-
-
-State 107
-
-   46 iteration_stat: WHILE LB iter_expression RB LCB . $@2 mul_stat RCB
-
-    $default  reduce using rule 45 ($@2)
-
-    $@2  go to state 117
-
-
-State 108
-
-   30 expression: ID LB func_call RB SEMICOLON .
-
-    $default  reduce using rule 30 (expression)
-
-
-State 109
 
    22 func_call: func_call COMMA const .
 
     $default  reduce using rule 22 (func_call)
 
 
-State 110
+State 106
 
    17 declaration: type ID ASGN expression_stat SEMICOLON .
 
     $default  reduce using rule 17 (declaration)
 
 
-State 111
+State 107
 
    15 declaration: type ID ASGN initializer SEMICOLON .
 
     $default  reduce using rule 15 (declaration)
 
 
-State 112
+State 108
 
    12 func: RB . func_end
 
-    LCB        shift, and go to state 118
-    SEMICOLON  shift, and go to state 119
+    LCB        shift, and go to state 115
+    SEMICOLON  shift, and go to state 116
 
-    func_end  go to state 120
+    func_end  go to state 117
 
 
-State 113
+State 109
 
    19 declaration: type ID LB $@1 func .
 
     $default  reduce using rule 19 (declaration)
 
 
-State 114
+State 110
 
    11 func: func_parameter . RB func_end
    20 func_parameter: func_parameter . COMMA type ID
 
-    RB     shift, and go to state 121
-    COMMA  shift, and go to state 122
+    RB     shift, and go to state 118
+    COMMA  shift, and go to state 119
 
 
-State 115
+State 111
 
    21 func_parameter: type . ID
 
-    ID  shift, and go to state 123
+    ID  shift, and go to state 120
 
 
-State 116
+State 112
 
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 . mul_stat RCB $@4 haselse
-
-    INT            shift, and go to state 3
-    FLOAT          shift, and go to state 4
-    STRING         shift, and go to state 5
-    BOOL           shift, and go to state 6
-    VOID           shift, and go to state 7
-    PRINT          shift, and go to state 8
-    IF             shift, and go to state 9
-    WHILE          shift, and go to state 10
-    ID             shift, and go to state 11
-    SEMICOLON      shift, and go to state 12
-    RET            shift, and go to state 13
-    START_COMMENT  shift, and go to state 14
-    CPLUS_COMMENT  shift, and go to state 15
-
-    stat            go to state 124
-    declaration     go to state 17
-    expression      go to state 18
-    iteration_stat  go to state 19
-    mul_stat        go to state 125
-    print_func      go to state 20
-    comment_stat    go to state 21
-    type            go to state 22
-
-
-State 117
-
-   46 iteration_stat: WHILE LB iter_expression RB LCB $@2 . mul_stat RCB
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 . mul_stat RCB $@5 haselse
 
     INT            shift, and go to state 3
     FLOAT          shift, and go to state 4
@@ -1328,17 +1303,52 @@ State 117
     START_COMMENT  shift, and go to state 14
     CPLUS_COMMENT  shift, and go to state 15
 
-    stat            go to state 124
+    stat            go to state 121
     declaration     go to state 17
     expression      go to state 18
     iteration_stat  go to state 19
-    mul_stat        go to state 126
+    mul_stat        go to state 122
     print_func      go to state 20
     comment_stat    go to state 21
     type            go to state 22
 
 
-State 118
+State 113
+
+   46 iteration_stat: WHILE LB expression_stat RB LCB $@3 . mul_stat RCB
+
+    INT            shift, and go to state 3
+    FLOAT          shift, and go to state 4
+    STRING         shift, and go to state 5
+    BOOL           shift, and go to state 6
+    VOID           shift, and go to state 7
+    PRINT          shift, and go to state 8
+    IF             shift, and go to state 9
+    WHILE          shift, and go to state 10
+    ID             shift, and go to state 11
+    SEMICOLON      shift, and go to state 12
+    RET            shift, and go to state 13
+    START_COMMENT  shift, and go to state 14
+    CPLUS_COMMENT  shift, and go to state 15
+
+    stat            go to state 121
+    declaration     go to state 17
+    expression      go to state 18
+    iteration_stat  go to state 19
+    mul_stat        go to state 123
+    print_func      go to state 20
+    comment_stat    go to state 21
+    type            go to state 22
+
+
+State 114
+
+   29 expression: ID LB func_call RB $@2 SEMICOLON .
+
+    $default  reduce using rule 29 (expression)
+
+
+State 115
 
    14 func_end: LCB . mul_stat RCB
 
@@ -1356,41 +1366,41 @@ State 118
     START_COMMENT  shift, and go to state 14
     CPLUS_COMMENT  shift, and go to state 15
 
-    stat            go to state 124
+    stat            go to state 121
     declaration     go to state 17
     expression      go to state 18
     iteration_stat  go to state 19
-    mul_stat        go to state 127
+    mul_stat        go to state 124
     print_func      go to state 20
     comment_stat    go to state 21
     type            go to state 22
 
 
-State 119
+State 116
 
    13 func_end: SEMICOLON .
 
     $default  reduce using rule 13 (func_end)
 
 
-State 120
+State 117
 
    12 func: RB func_end .
 
     $default  reduce using rule 12 (func)
 
 
-State 121
+State 118
 
    11 func: func_parameter RB . func_end
 
-    LCB        shift, and go to state 118
-    SEMICOLON  shift, and go to state 119
+    LCB        shift, and go to state 115
+    SEMICOLON  shift, and go to state 116
 
-    func_end  go to state 128
+    func_end  go to state 125
 
 
-State 122
+State 119
 
    20 func_parameter: func_parameter COMMA . type ID
 
@@ -1400,20 +1410,20 @@ State 122
     BOOL    shift, and go to state 6
     VOID    shift, and go to state 7
 
-    type  go to state 129
+    type  go to state 126
 
 
-State 123
+State 120
 
    21 func_parameter: type ID .
 
     $default  reduce using rule 21 (func_parameter)
 
 
-State 124
+State 121
 
-   59 mul_stat: stat . mul_stat
-   60         | stat .
+   57 mul_stat: stat . mul_stat
+   58         | stat .
 
     INT            shift, and go to state 3
     FLOAT          shift, and go to state 4
@@ -1429,162 +1439,170 @@ State 124
     START_COMMENT  shift, and go to state 14
     CPLUS_COMMENT  shift, and go to state 15
 
-    $default  reduce using rule 60 (mul_stat)
+    $default  reduce using rule 58 (mul_stat)
 
-    stat            go to state 124
+    stat            go to state 121
     declaration     go to state 17
     expression      go to state 18
     iteration_stat  go to state 19
-    mul_stat        go to state 130
+    mul_stat        go to state 127
     print_func      go to state 20
     comment_stat    go to state 21
     type            go to state 22
 
 
-State 125
+State 122
 
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 mul_stat . RCB $@4 haselse
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 mul_stat . RCB $@5 haselse
 
-    RCB  shift, and go to state 131
-
-
-State 126
-
-   46 iteration_stat: WHILE LB iter_expression RB LCB $@2 mul_stat . RCB
-
-    RCB  shift, and go to state 132
+    RCB  shift, and go to state 128
 
 
-State 127
+State 123
+
+   46 iteration_stat: WHILE LB expression_stat RB LCB $@3 mul_stat . RCB
+
+    RCB  shift, and go to state 129
+
+
+State 124
 
    14 func_end: LCB mul_stat . RCB
 
-    RCB  shift, and go to state 133
+    RCB  shift, and go to state 130
 
 
-State 128
+State 125
 
    11 func: func_parameter RB func_end .
 
     $default  reduce using rule 11 (func)
 
 
-State 129
+State 126
 
    20 func_parameter: func_parameter COMMA type . ID
 
-    ID  shift, and go to state 134
+    ID  shift, and go to state 131
 
 
-State 130
+State 127
 
-   59 mul_stat: stat mul_stat .
+   57 mul_stat: stat mul_stat .
 
-    $default  reduce using rule 59 (mul_stat)
-
-
-State 131
-
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 mul_stat RCB . $@4 haselse
-
-    $default  reduce using rule 48 ($@4)
-
-    $@4  go to state 135
+    $default  reduce using rule 57 (mul_stat)
 
 
-State 132
+State 128
 
-   46 iteration_stat: WHILE LB iter_expression RB LCB $@2 mul_stat RCB .
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 mul_stat RCB . $@5 haselse
+
+    $default  reduce using rule 48 ($@5)
+
+    $@5  go to state 132
+
+
+State 129
+
+   46 iteration_stat: WHILE LB expression_stat RB LCB $@3 mul_stat RCB .
 
     $default  reduce using rule 46 (iteration_stat)
 
 
-State 133
+State 130
 
    14 func_end: LCB mul_stat RCB .
 
     $default  reduce using rule 14 (func_end)
 
 
-State 134
+State 131
 
    20 func_parameter: func_parameter COMMA type ID .
 
     $default  reduce using rule 20 (func_parameter)
 
 
-State 135
+State 132
 
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 mul_stat RCB $@4 . haselse
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 mul_stat RCB $@5 . haselse
 
-    ELSE  shift, and go to state 136
+    ELSE  shift, and go to state 133
 
     $default  reduce using rule 52 (haselse)
 
-    haselse  go to state 137
+    haselse  go to state 134
 
 
-State 136
+State 133
 
-   51 haselse: ELSE . haselseif LCB $@5 mul_stat RCB
+   51 haselse: ELSE . haselseif LCB $@6 mul_stat RCB
 
-    IF  shift, and go to state 138
+    IF  shift, and go to state 135
 
     $default  reduce using rule 54 (haselseif)
 
-    haselseif  go to state 139
+    haselseif  go to state 136
 
 
-State 137
+State 134
 
-   49 iteration_stat: IF LB iter_expression RB LCB $@3 mul_stat RCB $@4 haselse .
+   49 iteration_stat: IF LB expression_stat RB LCB $@4 mul_stat RCB $@5 haselse .
 
     $default  reduce using rule 49 (iteration_stat)
 
 
+State 135
+
+   53 haselseif: IF . LB expression_stat RB LCB mul_stat RCB moreelseif
+
+    LB  shift, and go to state 137
+
+
+State 136
+
+   51 haselse: ELSE haselseif . LCB $@6 mul_stat RCB
+
+    LCB  shift, and go to state 138
+
+
+State 137
+
+   53 haselseif: IF LB . expression_stat RB LCB mul_stat RCB moreelseif
+
+    LB       shift, and go to state 37
+    ID       shift, and go to state 38
+    I_CONST  shift, and go to state 39
+    F_CONST  shift, and go to state 40
+
+    expression_stat      go to state 139
+    mul_expression_stat  go to state 46
+    factor               go to state 47
+
+
 State 138
 
-   53 haselseif: IF . LB iter_expression RB LCB mul_stat RCB moreelseif
+   51 haselse: ELSE haselseif LCB . $@6 mul_stat RCB
 
-    LB  shift, and go to state 140
+    $default  reduce using rule 50 ($@6)
+
+    $@6  go to state 140
 
 
 State 139
 
-   51 haselse: ELSE haselseif . LCB $@5 mul_stat RCB
+   32 expression_stat: expression_stat . ADD mul_expression_stat
+   33                | expression_stat . SUB mul_expression_stat
+   53 haselseif: IF LB expression_stat . RB LCB mul_stat RCB moreelseif
 
-    LCB  shift, and go to state 141
+    ADD  shift, and go to state 72
+    SUB  shift, and go to state 73
+    RB   shift, and go to state 141
 
 
 State 140
 
-   53 haselseif: IF LB . iter_expression RB LCB mul_stat RCB moreelseif
-
-    ID       shift, and go to state 54
-    I_CONST  shift, and go to state 55
-
-    iter_expression  go to state 142
-
-
-State 141
-
-   51 haselse: ELSE haselseif LCB . $@5 mul_stat RCB
-
-    $default  reduce using rule 50 ($@5)
-
-    $@5  go to state 143
-
-
-State 142
-
-   53 haselseif: IF LB iter_expression . RB LCB mul_stat RCB moreelseif
-
-    RB  shift, and go to state 144
-
-
-State 143
-
-   51 haselse: ELSE haselseif LCB $@5 . mul_stat RCB
+   51 haselse: ELSE haselseif LCB $@6 . mul_stat RCB
 
     INT            shift, and go to state 3
     FLOAT          shift, and go to state 4
@@ -1600,7 +1618,49 @@ State 143
     START_COMMENT  shift, and go to state 14
     CPLUS_COMMENT  shift, and go to state 15
 
-    stat            go to state 124
+    stat            go to state 121
+    declaration     go to state 17
+    expression      go to state 18
+    iteration_stat  go to state 19
+    mul_stat        go to state 142
+    print_func      go to state 20
+    comment_stat    go to state 21
+    type            go to state 22
+
+
+State 141
+
+   53 haselseif: IF LB expression_stat RB . LCB mul_stat RCB moreelseif
+
+    LCB  shift, and go to state 143
+
+
+State 142
+
+   51 haselse: ELSE haselseif LCB $@6 mul_stat . RCB
+
+    RCB  shift, and go to state 144
+
+
+State 143
+
+   53 haselseif: IF LB expression_stat RB LCB . mul_stat RCB moreelseif
+
+    INT            shift, and go to state 3
+    FLOAT          shift, and go to state 4
+    STRING         shift, and go to state 5
+    BOOL           shift, and go to state 6
+    VOID           shift, and go to state 7
+    PRINT          shift, and go to state 8
+    IF             shift, and go to state 9
+    WHILE          shift, and go to state 10
+    ID             shift, and go to state 11
+    SEMICOLON      shift, and go to state 12
+    RET            shift, and go to state 13
+    START_COMMENT  shift, and go to state 14
+    CPLUS_COMMENT  shift, and go to state 15
+
+    stat            go to state 121
     declaration     go to state 17
     expression      go to state 18
     iteration_stat  go to state 19
@@ -1612,90 +1672,48 @@ State 143
 
 State 144
 
-   53 haselseif: IF LB iter_expression RB . LCB mul_stat RCB moreelseif
-
-    LCB  shift, and go to state 146
-
-
-State 145
-
-   51 haselse: ELSE haselseif LCB $@5 mul_stat . RCB
-
-    RCB  shift, and go to state 147
-
-
-State 146
-
-   53 haselseif: IF LB iter_expression RB LCB . mul_stat RCB moreelseif
-
-    INT            shift, and go to state 3
-    FLOAT          shift, and go to state 4
-    STRING         shift, and go to state 5
-    BOOL           shift, and go to state 6
-    VOID           shift, and go to state 7
-    PRINT          shift, and go to state 8
-    IF             shift, and go to state 9
-    WHILE          shift, and go to state 10
-    ID             shift, and go to state 11
-    SEMICOLON      shift, and go to state 12
-    RET            shift, and go to state 13
-    START_COMMENT  shift, and go to state 14
-    CPLUS_COMMENT  shift, and go to state 15
-
-    stat            go to state 124
-    declaration     go to state 17
-    expression      go to state 18
-    iteration_stat  go to state 19
-    mul_stat        go to state 148
-    print_func      go to state 20
-    comment_stat    go to state 21
-    type            go to state 22
-
-
-State 147
-
-   51 haselse: ELSE haselseif LCB $@5 mul_stat RCB .
+   51 haselse: ELSE haselseif LCB $@6 mul_stat RCB .
 
     $default  reduce using rule 51 (haselse)
 
 
-State 148
+State 145
 
-   53 haselseif: IF LB iter_expression RB LCB mul_stat . RCB moreelseif
+   53 haselseif: IF LB expression_stat RB LCB mul_stat . RCB moreelseif
 
-    RCB  shift, and go to state 149
+    RCB  shift, and go to state 146
 
 
-State 149
+State 146
 
-   53 haselseif: IF LB iter_expression RB LCB mul_stat RCB . moreelseif
+   53 haselseif: IF LB expression_stat RB LCB mul_stat RCB . moreelseif
 
-    ELSE  shift, and go to state 150
+    ELSE  shift, and go to state 147
 
     $default  reduce using rule 56 (moreelseif)
 
-    moreelseif  go to state 151
+    moreelseif  go to state 148
 
 
-State 150
+State 147
 
    55 moreelseif: ELSE . haselseif
 
-    IF  shift, and go to state 138
+    IF  shift, and go to state 135
 
     $default  reduce using rule 54 (haselseif)
 
-    haselseif  go to state 152
+    haselseif  go to state 149
 
 
-State 151
+State 148
 
-   53 haselseif: IF LB iter_expression RB LCB mul_stat RCB moreelseif .
+   53 haselseif: IF LB expression_stat RB LCB mul_stat RCB moreelseif .
 
     $default  reduce using rule 53 (haselseif)
 
 
-State 152
+State 149
 
    55 moreelseif: ELSE haselseif .
 

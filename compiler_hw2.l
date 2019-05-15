@@ -7,6 +7,10 @@
 	extern int dump_flag;
 	extern int dump_scope;
 
+	extern void semantic_error(char [], int);
+	extern int error_flag;
+	extern char sem_error_msg[100];
+
 	#define BUF_SIZE 256
 	char buf[BUF_SIZE];
 
@@ -128,9 +132,13 @@ id			{letter}+({letter}|{digit})*
 
 [;]         { yylval.string_val = yytext; CONCAT; return SEMICOLON; }
 [\n]        { 
-				CONCAT; 
-				if(buf[0] == '\n') printf("%d:\n", yylineno-1);
-				else printf("%d: %s", yylineno-1, buf); 
+				//CONCAT; 
+				if(buf[0] == '\0') printf("%d:\n", yylineno-1);
+				else printf("%d: %s\n", yylineno-1, buf); 
+				if(error_flag == 1) {
+					semantic_error(sem_error_msg, yylineno-1);
+					error_flag = 0;
+				}
 				bzero(buf, BUF_SIZE);
 				if(dump_flag == 1) {
 					dump_symbol(dump_scope);
@@ -140,7 +148,7 @@ id			{letter}+({letter}|{digit})*
 [\t]		{ CONCAT; } /* Ignore */
 [ ]			{ CONCAT; }
 [^ \t\n] 	{ } /* Ignore other charactor sets */
-<<EOF>>     { return 0; }
+<<EOF>>     { yyterminate(); }
 
 %%
 

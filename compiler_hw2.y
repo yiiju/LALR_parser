@@ -11,6 +11,14 @@ extern void yyerror(char *s);
 extern char* yytext;   // Get current token from lex
 extern char buf[256];  // Get current code line from lex
 
+void semantic_error(char errormsg[100], int sem_line);
+int error_flag;
+char sem_error_msg[100];
+
+void syntax_error(char errormsg[100]);
+int syntax_flag;
+char syn_error_msg[100];
+
 /* Symbol table function - you can add new function if needed. */
 struct symbol
 {
@@ -27,7 +35,7 @@ struct scope
 	struct symbol table[30];
 };
 
-int lookup_symbol(char[]);
+int lookup_symbol(char[], char[]);
 void create_symbol();
 void insert_symbol(char[], char[], char[], char[], int);
 void dump_symbol(int);
@@ -131,28 +139,46 @@ func_end
 declaration
     : type ID ASGN initializer SEMICOLON 
 	{
-		int index = lookup_symbol($2); 
+		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
 			insert_symbol($2, "variable", $1, "\0", index);
+		}
+		else {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Redeclared variable ");
+			strcat(sem_error_msg, $2);
 		}
 	}
     | type ID SEMICOLON
 	{
-		int index = lookup_symbol($2); 
+		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
 			insert_symbol($2, "variable", $1, "\0", index);
+		}
+		else {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Redeclared variable ");
+			strcat(sem_error_msg, $2);
 		}
 	}
 	| type ID ASGN expression_stat SEMICOLON
 	{
-		int index = lookup_symbol($2); 
+		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
 			insert_symbol($2, "variable", $1, "\0", index);
+		}
+		else {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Redeclared variable ");
+			strcat(sem_error_msg, $2);
 		}
 	}
 	| type ID LB { table_num++; create_symbol(); } func
 	{
-		int index = lookup_symbol($2); 
+		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
 			char attr[100];
 			bzero(attr, 100);
@@ -177,14 +203,14 @@ declaration
 func_parameter
 	: func_parameter COMMA type ID
 	{
-		int index = lookup_symbol($4); 
+		int index = lookup_symbol($4, "insert"); 
 		if(index != -1) {
 			insert_symbol($4, "parameter", $3, "\0", index);
 		}
 	}
 	| type ID
 	{
-		int index = lookup_symbol($2); 
+		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
 			insert_symbol($2, "parameter", $1, "\0", index);
 		}
@@ -197,17 +223,55 @@ func_call
 ;
 
 const
-	: I_CONST
-	| F_CONST
-	| S_CONST
-	| ID
+	: S_CONST
+	| expression_stat
 ;
 
 expression
 	: ID asgn expression_stat SEMICOLON
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 	| ID arithmetic_postfix SEMICOLON
-	| ID LB func_call RB SEMICOLON
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
+	| ID LB func_call RB 
+	{ 
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared function ");
+			strcat(sem_error_msg, $1);
+		}
+	} SEMICOLON
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 	| ID LB RB SEMICOLON
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 	| SEMICOLON
 ;
 
@@ -228,18 +292,43 @@ factor
 	: I_CONST
 	| F_CONST
 	| ID
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 	| LB expression_stat RB
 	| ID arithmetic_postfix
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
+	| ID relational factor 
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 ;
 
 iteration_stat
-	: WHILE LB iter_expression RB LCB { table_num++; create_symbol(); } mul_stat RCB
+	: WHILE LB expression_stat RB LCB { table_num++; create_symbol(); } mul_stat RCB
 	{
 		dump_flag = 1; 
 		dump_scope = table_num; 
 		table_num--;
 	}
-	| IF LB iter_expression RB LCB { table_num++; create_symbol(); }  mul_stat RCB
+	| IF LB expression_stat RB LCB { table_num++; create_symbol(); }  mul_stat RCB
 	{
 		dump_flag = 1; 
 		dump_scope = table_num; 
@@ -258,18 +347,13 @@ haselse
 ;
 
 haselseif
-	: IF LB iter_expression RB LCB mul_stat RCB moreelseif
+	: IF LB expression_stat RB LCB mul_stat RCB moreelseif
 	| 
 ;
 
 moreelseif
 	: ELSE haselseif
 	|
-;
-
-iter_expression
-	: I_CONST 
-	| ID relational factor 
 ;
 
 mul_stat
@@ -293,6 +377,14 @@ print_func
 print_type
 	: S_CONST RB SEMICOLON
 	| ID RB SEMICOLON
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared variable ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 ;
 
 comment_stat
@@ -340,18 +432,38 @@ int main(int argc, char** argv)
 	create_symbol();
 
     yyparse();
-	dump_symbol(0);
-	printf("\nTotal lines: %d \n",yylineno-1);
-
+	if(syntax_flag == 1) {
+		if(error_flag == 1) {
+			printf("%d: %s\n", yylineno, buf);
+			semantic_error(sem_error_msg, yylineno);
+		}
+		syntax_error(syn_error_msg);
+	}
+	if(syntax_flag == 0) {
+		dump_symbol(0);
+		printf("\nTotal lines: %d \n",yylineno-1);
+	}
     return 0;
 }
 
 void yyerror(char *s)
 {
+	syntax_flag = 1;
+	strcpy(syn_error_msg, s);
+}
+
+void syntax_error(char errormsg[100]) {
     printf("\n|-----------------------------------------------|\n");
     printf("| Error found in line %d: %s\n", yylineno, buf);
-    printf("| %s", s);
+    printf("| %s", errormsg);
     printf("\n|-----------------------------------------------|\n\n");
+}
+
+void semantic_error(char errormsg[100], int sem_line) {
+    printf("\n|-----------------------------------------------|\n");
+    printf("| Error found in line %d: %s\n", sem_line, buf);
+    printf("| %s", errormsg);
+    printf("\n|-----------------------------------------------|\n\n");	
 }
 
 void create_symbol() {
@@ -378,22 +490,39 @@ void insert_symbol(char name[], char kind[], char type[], char attribute[], int 
 			break;
 		}
 	}
-//	printf("insert_symbol:%d\n", table_num);
 }
-int lookup_symbol(char name[]) {
-	//printf("lookup:%s\n",name);
-	int i;
-	for(i=0;i<30;i++) {
-		if(!strcmp(global_table[table_num].table[i].name, name)) {
-			return -1;
+int lookup_symbol(char name[], char type[]) {
+	if(!strcmp(type, "insert")) {
+		int i;
+		for(i=0;i<30;i++) {
+			if(!strcmp(global_table[table_num].table[i].name, name)) {
+				return -1;
+			}
+		}
+		for(i=0;i<30;i++) {
+			if(global_table[table_num].table[i].index == -1) {
+				strcpy(global_table[table_num].table[i].name, name);
+				return i;
+			}
 		}
 	}
-	for(i=0;i<30;i++) {
-		if(global_table[table_num].table[i].index == -1) {
-			strcpy(global_table[table_num].table[i].name, name);
-	//		printf("lookup_symbol:%d\n", i);
-			return i;
+	else {
+		// undeclared variable
+		int i;
+		for (int j=0;j<=table_num;j++) {
+			for(i=0;i<30;i++) {
+				if(!strcmp(global_table[j].table[i].name, name)) {
+					return 1;
+				}
+			}
 		}
+		// redeclare variable
+		for(i=0;i<30;i++) {
+			if(!strcmp(global_table[table_num].table[i].name, name)) {
+				return 2;
+			}
+		}
+		return -1;
 	}
 }
 void dump_symbol(int scope) {
