@@ -19,6 +19,8 @@ void syntax_error(char errormsg[100]);
 int syntax_flag;
 char syn_error_msg[100];
 
+char function_name[100];
+
 /* Symbol table function - you can add new function if needed. */
 struct symbol
 {
@@ -78,9 +80,6 @@ int table_num;
 %token <bool_val> FALSE
 
 /* Nonterminal with return, which need to sepcify type */
-/*
-%type <f_val> stat
-*/
 %type <string_val> type
 %type <string_val> ID INT FLOAT BOOL STRING VOID
 %type <string_val> func_end
@@ -176,7 +175,18 @@ declaration
 			strcat(sem_error_msg, $2);
 		}
 	}
-	| type ID LB { table_num++; create_symbol(); } func
+	| type ID LB 
+	{ 
+		table_num++; 
+		create_symbol(); 
+		int index = lookup_symbol($2, "semantic"); 
+		if(index == 1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Redeclared function ");
+			strcat(sem_error_msg, $2);
+		}
+	} func
 	{
 		int index = lookup_symbol($2, "insert"); 
 		if(index != -1) {
@@ -490,6 +500,7 @@ void insert_symbol(char name[], char kind[], char type[], char attribute[], int 
 int lookup_symbol(char name[], char type[]) {
 	if(!strcmp(type, "insert")) {
 		int i;
+		// redeclard variable, return -1
 		for(i=0;i<30;i++) {
 			if(!strcmp(global_table[table_num].table[i].name, name)) {
 				return -1;
@@ -503,19 +514,14 @@ int lookup_symbol(char name[], char type[]) {
 		}
 	}
 	else {
-		// undeclared variable
+		// undeclared variable, return -1 
+		// redeclare function, return 1
 		int i;
 		for (int j=0;j<=table_num;j++) {
 			for(i=0;i<30;i++) {
 				if(!strcmp(global_table[j].table[i].name, name)) {
 					return 1;
 				}
-			}
-		}
-		// redeclare variable
-		for(i=0;i<30;i++) {
-			if(!strcmp(global_table[table_num].table[i].name, name)) {
-				return 2;
 			}
 		}
 		return -1;
