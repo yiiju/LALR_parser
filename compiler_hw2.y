@@ -325,6 +325,15 @@ factor
 			strcat(sem_error_msg, $1);
 		}
 	}
+	| ID LB func_call RB
+	{
+		if(lookup_symbol($1, "semantic") == -1) {
+			error_flag = 1;
+			bzero(sem_error_msg, 100);
+			strcat(sem_error_msg, "Undeclared function ");
+			strcat(sem_error_msg, $1);
+		}
+	}
 ;
 
 iteration_stat
