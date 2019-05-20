@@ -5,7 +5,6 @@
 	extern YYSTYPE yylval; //YYSTYPE
 	extern void dump_symbol(int);
 	extern int dump_flag;
-	extern int dump_scope;
 
 	extern void semantic_error(char [], int);
 	extern int error_flag;
@@ -141,7 +140,7 @@ id			{letter}+({letter}|{digit})*
 				}
 				bzero(buf, BUF_SIZE);
 				if(dump_flag == 1) {
-					dump_symbol(dump_scope);
+					dump_symbol(1);
 					dump_flag = 0;
 				}
 			}

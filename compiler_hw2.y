@@ -42,10 +42,13 @@ void create_symbol();
 void insert_symbol(char[], char[], char[], char[], int);
 void dump_symbol(int);
 int dump_flag;
-int dump_scope;
 
 struct scope global_table[40];
 int table_num;
+
+struct scope temp_dump_table;
+void clear_temp_table();
+void fill_temp_table();
 
 %}
 
@@ -130,8 +133,9 @@ func_end
 	| LCB mul_stat RCB
 	{ 
 		dump_flag = 1; 
-		dump_scope = table_num; 
-		table_num--; 
+		clear_temp_table();
+		fill_temp_table();
+		table_num--;
 	}
 ;
 
@@ -340,30 +344,39 @@ iteration_stat
 	: WHILE LB expression_stat RB LCB { table_num++; create_symbol(); } mul_stat RCB
 	{
 		dump_flag = 1; 
-		dump_scope = table_num; 
+		clear_temp_table();
+		fill_temp_table();
 		table_num--;
 	}
 	| IF LB expression_stat RB LCB { table_num++; create_symbol(); }  mul_stat RCB
 	{
 		dump_flag = 1; 
-		dump_scope = table_num; 
+		clear_temp_table();
+		fill_temp_table();
 		table_num--;
 	} haselse
 ;
 
 haselse
-	: ELSE haselseif LCB { table_num++; create_symbol(); }  mul_stat RCB
-	{
-		dump_flag = 1; 
-		dump_scope = table_num; 
-		table_num--;
-	}
-	| 
+	: ELSE haselseif
+	|
 ;
 
 haselseif
-	: IF LB expression_stat RB LCB mul_stat RCB moreelseif
-	| 
+	: IF LB expression_stat RB LCB { table_num++; create_symbol(); } mul_stat RCB
+	{
+		dump_flag = 1; 
+		clear_temp_table();
+		fill_temp_table();
+		table_num--;
+	} moreelseif
+	| LCB { table_num++; create_symbol(); } mul_stat RCB
+	{
+		dump_flag = 1; 
+		clear_temp_table();
+		fill_temp_table();
+		table_num--;
+	}
 ;
 
 moreelseif
@@ -498,13 +511,6 @@ void insert_symbol(char name[], char kind[], char type[], char attribute[], int 
 	strcpy(global_table[table_num].table[index].type, type);
 	global_table[table_num].table[index].scope = table_num;
 	strcpy(global_table[table_num].table[index].attribute, attribute);
-	int i;
-	for(i=0;i<30;i++) {
-		if(global_table[table_num].table[i].index == -1) {
-			index = i;
-			break;
-		}
-	}
 }
 int lookup_symbol(char name[], char type[]) {
 	if(!strcmp(type, "insert")) {
@@ -537,24 +543,70 @@ int lookup_symbol(char name[], char type[]) {
 	}
 }
 void dump_symbol(int scope) {
-	if(global_table[scope].table[0].index != -1) {
-    	printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
-           "Index", "Name", "Kind", "Type", "Scope", "Attribute");
-	}
-	int has = 0;
-	for(int i=0;i<30;i++) {
-		if(global_table[scope].table[i].index != -1) {
-			has = 1;
-			printf("%-10d%-10s%-12s%-10s%-10d%-s\n",
-					global_table[scope].table[i].index, 
-					global_table[scope].table[i].name, 
-					global_table[scope].table[i].kind, 
-					global_table[scope].table[i].type, 
-					global_table[scope].table[i].scope, 
-					global_table[scope].table[i].attribute);
-			continue;
+	if(scope == 0) {
+		if(global_table[0].table[0].index != -1) {
+			printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
+					"Index", "Name", "Kind", "Type", "Scope", "Attribute");
 		}
-		if(has == 1) printf("\n");
-		break;
+		int has = 0;
+		for(int i=0;i<30;i++) {
+			if(global_table[0].table[i].index != -1) {
+				has = 1;
+				printf("%-10d%-10s%-12s%-10s%-10d%-s\n",
+						global_table[0].table[i].index, 
+						global_table[0].table[i].name, 
+						global_table[0].table[i].kind, 
+						global_table[0].table[i].type, 
+						global_table[0].table[i].scope, 
+						global_table[0].table[i].attribute);
+				continue;
+			}
+			if(has == 1) printf("\n");
+			break;
+		}
+	}
+	else {
+		if(temp_dump_table.table[0].index != -1) {
+			printf("\n%-10s%-10s%-12s%-10s%-10s%-10s\n\n",
+					"Index", "Name", "Kind", "Type", "Scope", "Attribute");
+		}
+		int has = 0;
+		for(int i=0;i<30;i++) {
+			if(temp_dump_table.table[i].index != -1) {
+				has = 1;
+				printf("%-10d%-10s%-12s%-10s%-10d%-s\n",
+						temp_dump_table.table[i].index, 
+						temp_dump_table.table[i].name, 
+						temp_dump_table.table[i].kind, 
+						temp_dump_table.table[i].type, 
+						temp_dump_table.table[i].scope, 
+						temp_dump_table.table[i].attribute);
+				continue;
+			}
+			if(has == 1) printf("\n");
+			break;
+		}
+	}
+}
+
+void clear_temp_table() {
+	for(int i=0;i<30;i++) {
+		temp_dump_table.table[i].index = -1;
+		strcpy(temp_dump_table.table[i].name, "\0");
+		strcpy(temp_dump_table.table[i].kind, "\0");
+		strcpy(temp_dump_table.table[i].type, "\0");
+		temp_dump_table.table[i].scope = table_num;
+		strcpy(temp_dump_table.table[i].attribute, "\0");
+	}
+}
+
+void fill_temp_table() {
+	for(int i=0;i<30;i++) {
+		temp_dump_table.table[i].index = global_table[table_num].table[i].index;
+		strcpy(temp_dump_table.table[i].name, global_table[table_num].table[i].name);
+		strcpy(temp_dump_table.table[i].kind, global_table[table_num].table[i].kind);
+		strcpy(temp_dump_table.table[i].type, global_table[table_num].table[i].type);
+		temp_dump_table.table[i].scope = table_num;
+		strcpy(temp_dump_table.table[i].attribute, global_table[table_num].table[i].attribute);
 	}
 }
