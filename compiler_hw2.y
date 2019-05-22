@@ -50,6 +50,16 @@ struct scope temp_dump_table;
 void clear_temp_table();
 void fill_temp_table();
 
+void init_func_table();
+void insert_func_table(char[]);
+int lookup_func_table(char[]);
+struct func_table
+{
+	int flag;
+	char name[100];
+}implement_func_table[30];
+int func_flag;
+
 %}
 
 /* Use variable or self-defined structure to represent
@@ -119,12 +129,14 @@ func
 		if(!strcmp($3, ";")) {
 			table_num--;
 		}
+		else func_flag = 1;
 	}
 	| RB func_end
 	{
 		if(!strcmp($2, ";")) {
 			table_num--;
 		}
+		else func_flag = 1;
 	}
 ;
 
@@ -183,8 +195,8 @@ declaration
 	{ 
 		table_num++; 
 		create_symbol(); 
-		int index = lookup_symbol($2, "semantic"); 
-		if(index == 1) {
+		int index = lookup_func_table($2);
+		if(index == 2) {
 			error_flag = 1;
 			bzero(sem_error_msg, 100);
 			strcat(sem_error_msg, "Redeclared function ");
@@ -210,6 +222,10 @@ declaration
 				else break;
 			}
 			insert_symbol($2, "function", $1, attr, index);
+		}
+		if(func_flag == 1) {
+			insert_func_table($2);
+			func_flag = 0;
 		}
 	}
 ;
@@ -458,6 +474,7 @@ int main(int argc, char** argv)
 	
 	table_num = 0;
 	create_symbol();
+	init_func_table();
 
     yyparse();
 	if(syntax_flag == 1) {
@@ -530,7 +547,6 @@ int lookup_symbol(char name[], char type[]) {
 	}
 	else {
 		// undeclared variable, return -1 
-		// redeclare function, return 1
 		int i;
 		for (int j=0;j<=table_num;j++) {
 			for(i=0;i<30;i++) {
@@ -608,5 +624,35 @@ void fill_temp_table() {
 		strcpy(temp_dump_table.table[i].type, global_table[table_num].table[i].type);
 		temp_dump_table.table[i].scope = table_num;
 		strcpy(temp_dump_table.table[i].attribute, global_table[table_num].table[i].attribute);
+	}
+}
+
+void init_func_table() {
+	for(int i=0;i<30;i++) {
+		implement_func_table[i].flag = -1;
+	}
+}
+
+void insert_func_table(char name[]) {
+	for(int i=0;i<30;i++) {
+		if(!strcmp(implement_func_table[i].name, name)) {
+			return;
+		}
+		if(implement_func_table[i].flag == -1) {
+			strcpy(implement_func_table[i].name, name);
+			implement_func_table[i].flag = 1;
+			return;
+		}
+	}
+}
+
+int lookup_func_table(char name[]) {
+	for(int i=0;i<30;i++) {
+		if(implement_func_table[i].flag == -1) {
+			return 1;
+		}
+		if(!strcmp(implement_func_table[i].name, name)) {
+			return 2;
+		}
 	}
 }
