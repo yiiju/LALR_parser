@@ -326,6 +326,8 @@ mul_expression_stat
 factor
 	: I_CONST
 	| F_CONST
+	| SUB I_CONST
+	| SUB F_CONST
 	| ID
 	{
 		if(lookup_symbol($1, "semantic") == -1) {
