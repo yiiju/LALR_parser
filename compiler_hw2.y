@@ -111,11 +111,26 @@ program
 
 stat
     : declaration 
+	| declaration_func
     | expression
 	| iteration_stat
     | print_func
 	| comment_stat
 	| RET return_stat
+;
+
+func_stat
+    : declaration 
+    | expression
+	| iteration_stat
+    | print_func
+	| comment_stat
+	| RET return_stat
+;
+
+func_mul_stat
+	: func_stat func_mul_stat
+	| func_stat
 ;
 
 return_stat
@@ -128,21 +143,23 @@ func
 	{
 		if(!strcmp($3, ";")) {
 			table_num--;
+			func_flag = 1;
 		}
-		else func_flag = 1;
+		//else func_flag = 1;
 	}
 	| RB func_end
 	{
 		if(!strcmp($2, ";")) {
 			table_num--;
+			func_flag = 1;
 		}
-		else func_flag = 1;
+		//else func_flag = 1;
 	}
 ;
 
 func_end
 	: SEMICOLON
-	| LCB mul_stat RCB
+	| LCB func_mul_stat RCB
 	{ 
 		dump_flag = 1; 
 		clear_temp_table();
@@ -191,10 +208,14 @@ declaration
 			strcat(sem_error_msg, $2);
 		}
 	}
-	| type ID LB 
+;
+
+declaration_func
+	: type ID LB 
 	{ 
 		table_num++; 
 		create_symbol(); 
+		/*
 		int index = lookup_func_table($2);
 		if(index == 2) {
 			error_flag = 1;
@@ -202,6 +223,7 @@ declaration
 			strcat(sem_error_msg, "Redeclared function ");
 			strcat(sem_error_msg, $2);
 		}
+		*/
 	} func
 	{
 		int index = lookup_symbol($2, "insert"); 
@@ -224,7 +246,14 @@ declaration
 			insert_symbol($2, "function", $1, attr, index);
 		}
 		if(func_flag == 1) {
-			insert_func_table($2);
+			int index = lookup_func_table($2);
+			if(index == 2) {
+				error_flag = 1;
+				bzero(sem_error_msg, 100);
+				strcat(sem_error_msg, "Redeclared function ");
+				strcat(sem_error_msg, $2);
+			}
+			else insert_func_table($2);
 			func_flag = 0;
 		}
 	}
